@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IdeaVenn — アイデア整理 & ベン図化ツール</title>
+    <meta name="description" content="アイデアを採用・検討中・不採用に整理し、AIがベン図で共通点を可視化するツール。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+
+    <!-- 背景エフェクト -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- ヘッダー -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">💡</span>
+          <span class="logo-text">IdeaVenn</span>
+          <span class="logo-badge">v1</span>
+        </div>
+        <div class="header-actions">
+          <button id="btn-api-key" class="btn btn-ghost" title="Gemini APIキーを設定">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07"/><path d="M4.93 4.93A10 10 0 0 0 19.07 19.07"/></svg>
+            API設定
+          </button>
+          <div id="api-status" class="api-status api-status--none">APIキー未設定</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- API キー設定モーダル -->
+    <div id="modal-api" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2 id="modal-title" class="modal-title">Gemini APIキーの設定</h2>
+          <button id="modal-close" class="btn-icon" aria-label="閉じる">✕</button>
+        </div>
+        <p class="modal-desc">
+          キーはブラウザの <code>localStorage</code> のみに保存され、<strong>Google の API エンドポイント以外には送信されません</strong>。<br />
+          キーなしの場合は <strong>デモモード</strong> でお試しいただけます。
+        </p>
+        <div class="form-group">
+          <label for="input-api-key" class="form-label">Gemini API Key</label>
+          <div class="input-wrapper">
+            <input type="password" id="input-api-key" class="form-input" placeholder="AIza..." autocomplete="off" />
+            <button id="btn-toggle-key-visibility" class="btn-icon-inline" title="表示/非表示">👁</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-clear-key" class="btn btn-ghost">キーを削除</button>
+          <button id="btn-save-key" class="btn btn-primary">保存</button>
+        </div>
+        <p class="modal-hint">
+          APIキーをお持ちでない方は
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a>
+          で無料取得できます。
+        </p>
+      </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <main class="main">
+
+      <!-- アイデア入力 -->
+      <section class="input-section">
+        <div class="input-card">
+          <h1 class="section-title">アイデアを追加</h1>
+          <div class="idea-input-area">
+            <textarea
+              id="input-idea"
+              class="idea-textarea"
+              rows="2"
+              placeholder="アイデアを入力して Enter… (Shift+Enter で改行)"
+            ></textarea>
+            <div class="input-actions">
+              <span class="char-hint">Enter で追加 / Shift+Enter で改行</span>
+              <button id="btn-add-idea" class="btn btn-primary btn-add">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                追加
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3カラム カンバン -->
+      <section class="kanban-section">
+        <div class="kanban-board" id="kanban-board">
+
+          <!-- 採用 -->
+          <div class="lane" id="lane-adopted" data-status="adopted">
+            <div class="lane-header lane-header--adopted">
+              <div class="lane-header-left">
+                <span class="lane-icon">✅</span>
+                <h2 class="lane-title">採用</h2>
+              </div>
+              <span class="lane-count" id="count-adopted">0</span>
+            </div>
+            <div class="lane-body" id="cards-adopted" data-status="adopted">
+              <div class="lane-empty" id="empty-adopted">アイデアをここにドロップ</div>
+            </div>
+          </div>
+
+          <!-- 検討中 -->
+          <div class="lane" id="lane-pending" data-status="pending">
+            <div class="lane-header lane-header--pending">
+              <div class="lane-header-left">
+                <span class="lane-icon">🔄</span>
+                <h2 class="lane-title">検討中</h2>
+              </div>
+              <span class="lane-count" id="count-pending">0</span>
+            </div>
+            <div class="lane-body" id="cards-pending" data-status="pending">
+              <div class="lane-empty" id="empty-pending">アイデアをここにドロップ</div>
+            </div>
+          </div>
+
+          <!-- 不採用 -->
+          <div class="lane" id="lane-rejected" data-status="rejected">
+            <div class="lane-header lane-header--rejected">
+              <div class="lane-header-left">
+                <span class="lane-icon">❌</span>
+                <h2 class="lane-title">不採用</h2>
+              </div>
+              <span class="lane-count" id="count-rejected">0</span>
+            </div>
+            <div class="lane-body" id="cards-rejected" data-status="rejected">
+              <div class="lane-empty" id="empty-rejected">アイデアをここにドロップ</div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ベン図化 アクションエリア -->
+      <section class="venn-action-section">
+        <div class="venn-action-card">
+          <div class="venn-action-info">
+            <span class="venn-action-icon">🔵</span>
+            <div>
+              <p class="venn-action-title">ベン図化</p>
+              <p class="venn-action-desc">「採用」と「検討中」のアイデアをAIが分析し、共通点・差異をベン図で可視化します</p>
+            </div>
+          </div>
+          <button id="btn-venn" class="btn btn-venn">
+            <svg class="btn-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="7"/><circle cx="15" cy="12" r="7"/></svg>
+            ベン図化する
+          </button>
+        </div>
+      </section>
+
+      <!-- ベン図 出力エリア -->
+      <section class="venn-output-section" id="venn-output-section">
+
+        <!-- ローディング -->
+        <div id="venn-loading" class="venn-loading hidden">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">AIがアイデアを分析中…</p>
+        </div>
+
+        <!-- エラー -->
+        <div id="venn-error" class="venn-error hidden">
+          <span class="venn-error-icon">⚠️</span>
+          <p id="venn-error-msg"></p>
+        </div>
+
+        <!-- ベン図本体 -->
+        <div id="venn-result" class="venn-result hidden">
+          <h2 class="venn-result-title">ベン図分析結果</h2>
+          <p class="venn-result-subtitle" id="venn-result-subtitle"></p>
+
+          <!-- SVG ベン図 -->
+          <div class="venn-diagram-wrapper">
+            <svg id="venn-svg" class="venn-svg" viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg" aria-label="ベン図">
+              <defs>
+                <radialGradient id="grad-adopted" cx="40%" cy="40%">
+                  <stop offset="0%" stop-color="#818cf8" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.15"/>
+                </radialGradient>
+                <radialGradient id="grad-pending" cx="60%" cy="40%">
+                  <stop offset="0%" stop-color="#34d399" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#059669" stop-opacity="0.15"/>
+                </radialGradient>
+                <radialGradient id="grad-intersect" cx="50%" cy="50%">
+                  <stop offset="0%" stop-color="#c084fc" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#9333ea" stop-opacity="0.1"/>
+                </radialGradient>
+                <filter id="glow-blur">
+                  <feGaussianBlur stdDeviation="6" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+              <!-- 動的に描画 -->
+            </svg>
+          </div>
+
+          <!-- テキスト詳細 -->
+          <div class="venn-details" id="venn-details"></div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>IdeaVenn — web3・AI概論 2026 第5週 プロトタイプ v1 by <strong>clara27</strong></p>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
