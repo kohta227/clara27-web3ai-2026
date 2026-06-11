@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja" class="step3-page">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Step 3 — Supabase を繋ぐ | 教えて、minta先生 ハンズオン</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="container page-header-inner">
+    <a href="index.html" class="back-link">← トップに戻る</a>
+    <span class="progress-pill"><span class="progress-dot"></span> Step 3 of 3</span>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container-narrow">
+    <span class="page-hero-eyebrow">🗄 Step 3</span>
+    <h1 class="page-hero-title">Supabase を繋ぐ</h1>
+    <p class="page-hero-subtitle">
+      Vercel Marketplace から <strong>Supabase をワンクリック Connect</strong>。環境変数が自動で投入され、SQL Editor でテーブルを作るだけで、質問の分析メタが DB に蓄積されるようになります。
+    </p>
+    <div class="page-hero-meta">
+      <span>⏱ 約 10〜15 分</span>
+      <span>🎯 ゴール: 履歴が DB に蓄積される</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow">
+
+    <div class="ai-partner">
+      <div class="ai-partner-title">Step 3 でやること（概要）</div>
+      <p>
+        スライドで見せたかった「<strong>DB連携が驚くほど簡単</strong>」を体験するパート。<br>
+        Vercel の Storage タブから Supabase を選び、Connect ボタンを押すだけで <strong>3つの環境変数</strong>（URL / anon key / service_role key）が自動で Vercel プロジェクトに注入されます。
+      </p>
+      <p>
+        あとは Supabase の SQL Editor でテーブル作成 SQL を1回流すだけ。
+      </p>
+    </div>
+
+    <h2 class="section-title"><span class="section-title-emoji">🎯</span> このステップでやること</h2>
+    <ol class="steps-list">
+      <li>
+        <h3>Vercel → Storage タブ</h3>
+        <p>プロジェクトを開いて Storage タブに移動</p>
+      </li>
+      <li>
+        <h3>Create Database → Supabase</h3>
+        <p>Supabase を選んで Connect ボタン</p>
+      </li>
+      <li>
+        <h3>Supabase プロジェクト作成</h3>
+        <p>Tokyo リージョン・Free プラン推奨。1〜2分で出来る</p>
+      </li>
+      <li>
+        <h3>環境変数の自動投入を確認</h3>
+        <p>Vercel の Settings → Environment Variables に <code>NEXT_PUBLIC_SUPABASE_URL</code> 他が追加されているはず</p>
+      </li>
+      <li>
+        <h3>SQL Editor でテーブル作成</h3>
+        <p>Supabase ダッシュボード → SQL Editor → 教材の <code>supabase-schema.sql</code> を Run</p>
+      </li>
+      <li>
+        <h3>Vercel で Redeploy</h3>
+        <p>環境変数の追加を反映させるため、Deployments タブから最新を Redeploy</p>
+      </li>
+      <li>
+        <h3>動作確認</h3>
+        <p>公開URLで質問 → 履歴一覧に表示 → Supabase Table Editor で <code>qa_logs</code> にレコード入っていれば完了</p>
+      </li>
+    </ol>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🚀</span> Claude Code に投げるプロンプト</h2>
+    <p class="section-lead">
+      Step 3 は <strong>大半が Vercel / Supabase ダッシュボードの操作</strong>です。Claude Code は SQL の説明やエラー対処などで補助役。
+    </p>
+
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 Step 3 起動プロンプト</span>
+        <button class="copy-btn" data-copy-target="step3-prompt">コピー</button>
+      </div>
+      <pre id="step3-prompt"># Step 3: Supabase を Vercel から Connect
+
+「教えて、minta先生」アプリに DB を繋ぎます。Vercel から Supabase をワンクリック連携 → SQL でテーブル作成 → 公開URLで履歴蓄積、までです。
+
+## 私の状況
+- Step 2 完了: 公開URL (https://___.vercel.app) で動いている
+- DB はまだ繋がっていない（「Supabase未設定」と表示されている）
+
+## ゴール
+- 公開URLで質問を投げると、画面下部の「みんなの質問傾向」に履歴が表示される
+- Supabase Table Editor で qa_logs テーブルに分析メタが入っているのが確認できる
+
+## 進め方
+
+### 1. Vercel から Supabase を Connect
+- Vercel ダッシュボードの該当プロジェクト → 上タブ「Storage」
+- 「Create Database」→「Supabase」を選択
+- Continue → 既存 Supabase アカウントと連携 or 新規作成
+- 新規 Supabase プロジェクト名: 例 minta-sensei-db
+- Region: Northeast Asia (Tokyo)
+- Plan: Free
+- Connect
+
+### 2. 環境変数の自動投入を確認
+- Vercel の Settings → Environment Variables を開く
+- NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY などが自動で入っているはず
+- 入っていなかったら Supabase Marketplace 連携が正しく完了していない可能性 → 私に報告
+
+### 3. SQL Editor でテーブル作成
+- Supabase ダッシュボードに自動で遷移 (or アクセス)
+- 左サイドバーの SQL Editor (</> アイコン) を開く
+- 教材の `assets/supabase-schema.sql` の中身を全部コピー
+- SQL Editor に貼って Run (⌘+Enter)
+- 「Success. No rows returned」が出ればOK
+- 左サイドバーの Table Editor で qa_logs テーブルが作られているか確認
+
+### 4. Vercel で Redeploy
+- 環境変数の追加を反映するため再デプロイが必要
+- Vercel の Deployments タブ → 最新デプロイの右の ⋯ → Redeploy
+- 1-2 分待つ
+
+### 5. 動作確認
+- 公開URLにアクセス
+- 質問を投げる: 例「Next.js のメリットを3つ教えて」
+- 回答が返り、画面下部の「みんなの質問傾向」に表示される
+- Supabase の Table Editor で qa_logs を開き、レコードが追加されているか確認
+- レコードには元の質問文・回答文ではなく、PII除去済の分析メタだけが入っていることを確認
+
+## エラー時
+- 「Supabase未設定」と出続ける → 環境変数が反映されていない可能性 → Vercel の Variables を確認
+- 「履歴の取得に失敗しました」 → RLS ポリシーが正しく設定されているか SQL Editor で確認
+- ログは Vercel の Runtime Logs を確認
+
+## セキュリティ注意
+- SUPABASE_SERVICE_ROLE_KEY は DB 全権アクセス可能な強力なキー。クライアント JS から絶対に呼ばない（コード上 NEXT_PUBLIC_ プレフィックスが付いていないことを確認）
+- RLS (Row Level Security) は有効化済み。anon ロールには select だけ許可、insert/update/delete は service_role からしかできない設計
+
+それでは Step 3 を始めてください。</pre>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🗂</span> Supabase 上で作るテーブル</h2>
+    <p class="section-lead">
+      <code>qa_logs</code> という1つのテーブルだけを使います。元の質問文・回答文は保存しません。
+    </p>
+
+    <table class="kv-table">
+      <tr><th>カラム</th><th>型</th><th>意味</th></tr>
+      <tr><td><code>id</code></td><td>uuid</td><td>主キー（自動生成）</td></tr>
+      <tr><td><code>category</code></td><td>text</td><td>質問カテゴリ（AI / web3 / 開発 / 学習方法 / その他）</td></tr>
+      <tr><td><code>topic_summary</code></td><td>text</td><td>質問内容の30文字程度の要約（PII除去済）</td></tr>
+      <tr><td><code>answer_summary</code></td><td>text</td><td>回答内容の40文字程度の要約（PII除去済）</td></tr>
+      <tr><td><code>question_char_count</code></td><td>int</td><td>元の質問の文字数</td></tr>
+      <tr><td><code>answer_char_count</code></td><td>int</td><td>元の回答の文字数</td></tr>
+      <tr><td><code>contains_pii</code></td><td>boolean</td><td>元テキストに PII が含まれていたか</td></tr>
+      <tr><td><code>created_at</code></td><td>timestamptz</td><td>記録時刻</td></tr>
+    </table>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🔐</span> Row Level Security (RLS) について</h2>
+    <p class="section-lead">Supabase を本気で使う上で <strong>必須の概念</strong>。今回のスキーマでも有効化しています。</p>
+    <ul class="bullets">
+      <li><strong>RLS とは</strong>: PostgreSQL の機能で、テーブルの各行に対して「誰が読める / 書ける」をポリシーで制御する仕組み。</li>
+      <li><strong>Supabase での anon ロール</strong>: 認証していないユーザー (ブラウザから anon key で繋がるクライアント) のロール。今回はこのロールに <code>select</code> だけ許可。</li>
+      <li><strong>service_role ロール</strong>: サーバサイドで使う管理者ロール。RLS をすり抜けて何でもできる。今回はこちらで <code>insert</code> を行う。</li>
+      <li><strong>もし RLS を切ったらどうなる？</strong>: 公開URLの JS から誰でも好きなデータを insert / delete できてしまう。本番運用ではほぼ必ず ON にする。</li>
+    </ul>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🛡</span> Step 3 のセキュリティ要点</h2>
+    <ul class="bullets">
+      <li><strong>SUPABASE_SERVICE_ROLE_KEY は絶対にクライアントから読めないようにする</strong>。<code>NEXT_PUBLIC_</code> プレフィックスを付けてはいけない。</li>
+      <li><strong>RLS は必ず有効化</strong>。テーブルを新規作成したら、まず <code>alter table ... enable row level security;</code> を流すクセを付ける。</li>
+      <li><strong>本番では Anonymous Sign In を許可しない設定</strong>も検討。Supabase の Auth 設定で制御できる。</li>
+      <li><strong>本番でレートリミットを入れる</strong>。Vercel の Edge Config / Upstash Redis などで実装できる。今回の教材はサンプルなので未実装。</li>
+      <li><strong>本番では PII 検出を強化</strong>。今回のサンプルでは regex + LLM の2段階だが、本番では専用ライブラリ（Microsoft Presidio など）の併用を検討。</li>
+    </ul>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">✅</span> Step 3 完了チェック</h2>
+    <ul class="bullets">
+      <li>☐ Vercel の Environment Variables に Supabase 関連の変数が自動で追加されている</li>
+      <li>☐ Supabase の SQL Editor で <code>qa_logs</code> テーブルが作成された</li>
+      <li>☐ Vercel で Redeploy が成功している</li>
+      <li>☐ 公開URLで質問を投げると、画面下部の「みんなの質問傾向」に履歴が表示される</li>
+      <li>☐ Supabase Table Editor で <code>qa_logs</code> にレコードが入っている</li>
+      <li>☐ レコードには元の質問文・回答文が含まれていない（PII除去済の分析メタのみ）</li>
+    </ul>
+
+    <div class="callout callout-info" style="margin-top: 24px;">
+      <div class="callout-title">🎉 おめでとうございます — 全体完了</div>
+      <p>
+        ローカルで作って → GitHub に上げて → Vercel で公開して → Supabase で DB を繋いだ。<br>
+        これで「<strong>AI と DB を組み合わせた Web アプリ</strong>」を1時間以内に世界に公開する経験が完了です。<br>
+        次は <a href="customize.html">カスタマイズ</a> へ。minta先生を別キャラに変えたり、別の用途に転用したりして遊んでみましょう。
+      </p>
+    </div>
+
+    <div class="next-step-card">
+      <div class="next-step-card-eyebrow">Next →</div>
+      <h3>🎨 カスタマイズ</h3>
+      <p>minta先生の人格を別キャラに変える / DB スキーマを拡張する / 別の API と組み合わせる など、自由に派生させるレシピ集。</p>
+      <a href="customize.html" class="next-step-card-link">カスタマイズに進む →</a>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      Powered by Next.js · Gemini · Supabase · Vercel · Claude Code
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

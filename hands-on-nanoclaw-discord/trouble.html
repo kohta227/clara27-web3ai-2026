@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja" class="trouble-page">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>詰まったときの診断プロンプト集 | nanoclaw × Discord ハンズオン</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="container page-header-inner">
+    <a href="index.html" class="back-link">← トップに戻る</a>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span class="progress-pill"><span class="progress-dot"></span> 診断プロンプト集</span>
+      <a href="https://github.com/web3ai-gairon/pub-docs/tree/main/hands-on-nanoclaw-discord" target="_blank" class="github-link">GitHub で見る</a>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container-narrow">
+    <span class="page-hero-eyebrow">🆘 困ったとき</span>
+    <h1 class="page-hero-title">症状別の診断プロンプト集</h1>
+    <p class="page-hero-subtitle">
+      Bot が思った通りに動かない／設定が崩れた／そもそも何が起きてるか分からない、というときの逆引きガイド。各カードを開いて<strong>コピー → Claude Code に貼り付け</strong>するだけで、診断・修復を Claude Code が伴走します。
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow">
+
+    <h2 class="section-title"><span class="section-title-emoji">🔍</span> まず最初に</h2>
+    <p class="section-lead">何が起きてるか分からない時は、まずクイック診断（T-DIAG）で全体を把握してから、当てはまる症状のカードへ。</p>
+
+    <details class="rescue-prompt" open>
+      <summary>🔍 T-DIAG — クイック診断（まずこれ）</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 環境・プロセス・ログ・DB を一括チェック</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-DIAG: nanoclaw の現状を診断してください。
+
+1. 環境チェック:
+   - docker --version / docker info（daemon が応答するか）
+   - node --version, pnpm --version, claude --version
+   - launchctl list | grep nanoclaw（ホストプロセスが動いているか）
+   - docker ps --filter "name=nanoclaw"（コンテナが起動しているか）
+2. ログの末尾:
+   - tail -30 ~/Documents/nanoclaw/logs/nanoclaw.log
+   - tail -30 ~/Documents/nanoclaw/logs/nanoclaw.error.log
+3. DB の主要テーブルの行数:
+   - sqlite3 ~/Documents/nanoclaw/data/v2.db "SELECT 'users', COUNT(*) FROM users UNION ALL SELECT 'messaging_groups', COUNT(*) FROM messaging_groups UNION ALL SELECT 'wirings', COUNT(*) FROM messaging_group_agents UNION ALL SELECT 'destinations', COUNT(*) FROM agent_destinations UNION ALL SELECT 'roles', COUNT(*) FROM user_roles;"
+4. 異常があれば、本ファイルの該当 T-* セクションに誘導してください。</pre>
+      </div>
+    </details>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🏗</span> Step 1（土台作り）で出やすい症状</h2>
+
+    <details class="rescue-prompt">
+      <summary>🐳 T-DOCKER — Docker Desktop が起動しない / "unable to start" が続く</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 プロセスとログを調べて自動復旧</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-DOCKER: Docker Desktop の起動を診断してください。
+
+1. プロセス確認:
+   ps aux | grep -i docker | grep -v grep | head -10
+2. UI プロセスと backend プロセスの両方が居るか確認。「Docker Desktop --name=login」というプロセスが居る場合は、ライセンス同意 UI が表示待ちの可能性が高い → 私に「画面の Docker Desktop ウィンドウを確認して Accept/Continue を押してほしい」と促す
+3. ログ末尾を確認:
+   ls -t ~/Library/Containers/com.docker.docker/Data/log/host/*.log | head -1 | xargs tail -40
+   "VM Otel collector" や "engine to respond to _ping" のタイムアウト警告があれば、VM 起動失敗状態
+4. 復旧手順を実行:
+   osascript -e 'quit app "Docker"'
+   sleep 3
+   killall -9 "Docker Desktop" 2>/dev/null
+   killall -9 "com.docker.backend" 2>/dev/null
+   sleep 3
+   open /Applications/Docker.app
+5. 起動を待つ:
+   until docker info > /dev/null 2>&1; do sleep 3; done
+6. それでも復旧しなければ Docker Desktop のリセット（Preferences → Troubleshoot → Reset to factory defaults）を案内してください</pre>
+      </div>
+    </details>
+
+    <details class="rescue-prompt">
+      <summary>📜 T-NANOCLAW-SH — <code>nanoclaw.sh</code> が途中で止まる / "/dev/tty: Device not configured" が出た</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 失敗ステップ特定 → 再実行</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-NANOCLAW-SH: nanoclaw.sh の失敗を診断してください。
+
+1. もし「/dev/tty: Device not configured」エラーが出ていれば、それは TTY が無い環境（私の Claude Code Bash ツール経由など）で実行した場合の症状です。私は VSCode のターミナル.app など、対話 TTY が使える場所で再実行する必要があります。
+2. ログを確認:
+   tail -60 ~/Documents/nanoclaw/logs/setup.log
+   ls -t ~/Documents/nanoclaw/logs/setup-steps/ | head -5
+   # 直近の失敗ステップを cat してエラー詳細を確認
+3. setup.log に "aborted at <step>" の行がある場合、その <step> 名から原因を特定:
+   - 03-onecli → OneCLI のインストール失敗 → curl が通るか確認
+   - 05-claude-token → Claude サインインが完了していない → ブラウザフローを再実行
+   - 07-cli-agent → エージェントコンテナのビルド失敗 → docker build 単体実行で再現
+   - 10-discord-install → @chat-adapter/discord の取得失敗 → pnpm install の再実行
+4. nanoclaw.sh は冪等設計なので、修正後にもう一度 bash nanoclaw.sh を実行すれば、成功したステップはスキップして次から再開する。私に再実行を案内してください。
+5. それでもダメなら nanoclaw 本体の /debug スキルを起動:
+   cd ~/Documents/nanoclaw && claude
+   → /debug</pre>
+      </div>
+    </details>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🎨</span> Step 2（公開チャンネル・人格化）で出やすい症状</h2>
+
+    <details class="rescue-prompt">
+      <summary>💬 T-DM-OK-CHANNEL-NG — DM では返事が来るが公開チャンネルで反応しない</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 wiring / destinations / roles を一括点検</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-DM-OK-CHANNEL-NG: 公開チャンネルでの無反応を診断してください。
+
+1. ログを確認:
+   tail -50 ~/Documents/nanoclaw/logs/nanoclaw.log | grep -E "Inbound|Message routed|Auto-created|engage|dropped"
+   tail -30 ~/Documents/nanoclaw/logs/nanoclaw.error.log
+
+2. 以下の症状から原因を特定:
+
+   (A) "Unknown Guild" "code 10004" エラー
+   → Bot がそのサーバに招待されていない。
+   → MANUAL.md B-3（OAuth2 URL Generator）でそのサーバに招待し直す
+
+   (B) "Channel registration skipped — no owner or admin configured"
+   → Owner ロール未登録。PROMPTS.md P5 のステップを実行:
+     ./bin/ncl roles grant --user discord:&lt;USER_ID&gt; --role owner
+
+   (C) "no_agent_wired" / "no_agent_engaged" が dropped-messages に出ている
+   → wiring が無い。PROMPTS.md P5 で wirings create を実行
+
+   (D) ログには "Message delivered" が出ているが、配信先 platformId が discord:@me:XXX（DM）になっている
+   → エージェントが返信先を知らない。destinations を追加:
+     ./bin/ncl destinations add --agent-group-id &lt;AG_ID&gt; --local-name &lt;name&gt; --target-type channel --target-id &lt;MG_ID&gt;
+
+3. dropped-messages を確認:
+   ./bin/ncl dropped-messages list
+
+4. 修正後、Discord で再度メンションしてもらって動作確認</pre>
+      </div>
+    </details>
+
+    <details class="rescue-prompt">
+      <summary>🧵 T-THREAD-CREATED — メンション時にスレッドが自動で作られる</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 pnpm patch の適用状態を確認</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-THREAD-CREATED: スレッド自動作成を無効化するパッチが当たっているか確認してください。
+
+1. パッチの存在確認:
+   ls ~/Documents/nanoclaw/patches/ 2>/dev/null
+   cat ~/Documents/nanoclaw/pnpm-workspace.yaml | grep -A 2 patchedDependencies
+
+   @chat-adapter__discord@4.26.0.patch が存在し、pnpm-workspace.yaml で参照されていれば OK。
+
+2. 無ければ PROMPTS.md P6 を実行（pnpm patch でパッチを作成）
+
+3. パッチがあるのに動作しない場合、適用されているか確認:
+   grep -A 2 "NANOCLAW-PATCH" ~/Documents/nanoclaw/node_modules/@chat-adapter/discord/dist/index.js
+   → コメントが見えればパッチ済み。見えなければ pnpm install で再適用:
+     cd ~/Documents/nanoclaw && pnpm install
+
+4. ホストを再起動（2 ステップ、slug は画面で確認）:
+   SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+   echo "Detected nanoclaw install-slug: $SLUG"
+   launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"</pre>
+      </div>
+    </details>
+
+    <details class="rescue-prompt">
+      <summary>📬 T-APPROVAL-CARD — 他ユーザーが話すと DM に承認カードが飛ぶ</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 unknown_sender_policy を public に変更</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-APPROVAL-CARD: messaging_groups の unknown_sender_policy を確認・変更してください。
+
+1. 現状確認:
+   ./bin/ncl messaging-groups list
+
+2. 該当サーバの messaging_group_id を特定して unknown_sender_policy を public に:
+   ./bin/ncl messaging-groups update --id &lt;MG_ID&gt; --unknown-sender-policy public
+
+3. 既に出ている承認カードはそのまま残るが、新しいメッセージは承認なしで通るようになる
+4. もし「特定の人だけ通したい」場合は public ではなく、./bin/ncl members add で個別に許可する方針もあるが、講座サポートなら public が現実的
+5. ⚠️ public = 誰でも話せる = API 料金は所有者持ち。注意喚起してください</pre>
+      </div>
+    </details>
+
+    <details class="rescue-prompt">
+      <summary>🎭 T-PERSONA-NOT-APPLIED — <code>CLAUDE.local.md</code> を編集したのに人格が変わらない</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 コンテナ再起動とキャッシュ消去</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-PERSONA-NOT-APPLIED: CLAUDE.local.md の反映を診断してください。
+
+1. ファイル内容確認:
+   # &lt;group-folder&gt; は ls ~/Documents/nanoclaw/groups/ で出る dm-with-&lt;name&gt; 形式のフォルダ
+   ls ~/Documents/nanoclaw/groups/   # 候補を確認
+   cat ~/Documents/nanoclaw/groups/&lt;group-folder&gt;/CLAUDE.local.md
+   → 期待する内容になっているか
+
+2. 起動中のコンテナを止める（既存セッションは古い人格をキャッシュしている可能性）:
+   docker ps --filter "name=nanoclaw" -q | xargs -r docker stop
+
+3. ホストを再起動（2 ステップ、slug は画面で確認）:
+   SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+   echo "Detected nanoclaw install-slug: $SLUG"
+   launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"
+
+4. 起動を待ち、ログ確認:
+   until launchctl list | grep -q "com.nanoclaw-v2-"; do sleep 1; done
+   tail -10 ~/Documents/nanoclaw/logs/nanoclaw.log
+
+5. Discord でメンションして新しいセッションを起こす（新セッション = 新コンテナ = 新 CLAUDE.local.md）
+
+6. それでも変わらない場合、CLAUDE.local.md の内容が薄い／曖昧な可能性。以下を試す:
+   - CLAUDE.local.md の冒頭に「あなたは XXX として振る舞ってください。設定を尊重し、素の Claude には戻らないこと。」のような明示的なロール宣言を 1 行追加
+   - 具体例を 3〜5 個追記（few-shot 強化）
+   - それでもダメなら groups/&lt;group-folder&gt;/container.json に system_prompt フィールドがあるか確認</pre>
+      </div>
+    </details>
+
+    <details class="rescue-prompt">
+      <summary>📡 T-AUTO-WIRING-SPAM — 公開チャンネルで Bot が勝手に連続返信する</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 mention-sticky の暴発を止める</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-AUTO-WIRING-SPAM: 公開チャンネルでの連続返信を止めてください。
+
+原因: nanoclaw のデフォルト挙動として、新しい Discord グループチャネルが承認登録された時、自動で mention-sticky モードの wiring が作られる。一度メンションされると以後そのチャネル全体で全メッセージに反応する。
+
+1. wiring を確認:
+   ./bin/ncl wirings list
+
+2. engage_mode が "mention-sticky" の wiring を特定し、mention に変更:
+   ./bin/ncl wirings update --id &lt;mga-id&gt; --engage-mode mention
+
+3. 恒久対策として、nanoclaw 本体の src/modules/permissions/index.ts を編集して、新規承認時のデフォルトを mention に変える:
+   - 「const engageMode: ... = isGroup ? 'mention-sticky' : 'pattern';」が 2 箇所
+   - どちらも 'mention-sticky' を 'mention' に変更
+   - DM 側（'pattern'）はそのまま
+
+4. pnpm run build で再ビルド
+
+5. ホスト再起動:
+   docker ps --filter "name=nanoclaw" -q | xargs -r docker stop
+   SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+   launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"
+
+6. 動作確認: 私に「公開チャンネルで Bot にメンションした後、別の話題を投稿してみて」と促し、メンションした時だけ反応する状態か確認</pre>
+      </div>
+    </details>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">📊</span> 原因究明・運用フェーズで使うプロンプト</h2>
+
+    <details class="rescue-prompt">
+      <summary>📊 T-LOGS-LOOKUP — ログから何が起きているか時系列で追う</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 ホストログ・エラーログ・セッションDB を横断確認</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-LOGS-LOOKUP: ログを横断的に確認して時系列で状況を把握してください。
+
+最近 30 分のホストログ:
+  awk -v d="$(date -v-30M -u +%H:%M)" '$0 ~ d, /9999/' ~/Documents/nanoclaw/logs/nanoclaw.log | tail -100
+
+エラーログ全体:
+  cat ~/Documents/nanoclaw/logs/nanoclaw.error.log
+
+セッション固有ログ（最新セッション）:
+  LATEST=$(ls -t ~/Documents/nanoclaw/data/v2-sessions/*/ | head -1)
+  ls -lt $LATEST
+  # inbound.db / outbound.db を直接覗く:
+  sqlite3 $LATEST/inbound.db "SELECT * FROM messages_in ORDER BY rowid DESC LIMIT 3;"
+  sqlite3 $LATEST/outbound.db "SELECT * FROM messages_out ORDER BY rowid DESC LIMIT 3;"
+
+特定の Discord メッセージ ID を追う:
+  grep &lt;MESSAGE_ID&gt; ~/Documents/nanoclaw/logs/nanoclaw.log</pre>
+      </div>
+    </details>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">♻️</span> 最終手段：完全リセット</h2>
+
+    <details class="rescue-prompt">
+      <summary>♻️ T-RESET — nanoclaw を完全リセットして最初からやり直す（⚠️ 破壊的）</summary>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 バックアップ → 再クローン → P0 から再開</span>
+          <button class="copy-btn">📋 コピー</button>
+        </div>
+<pre>T-RESET: nanoclaw を完全リセットしてください。
+
+⚠️ これは破壊的操作です。実行前に私に意図を確認してください。Discord Bot Token も再設定が必要になります。
+
+1. ホストを停止:
+   launchctl unload ~/Library/LaunchAgents/com.nanoclaw-v2-*.plist
+
+2. 起動中のコンテナを止める:
+   docker ps --filter "name=nanoclaw" -q | xargs -r docker stop
+
+3. データを退避（消す前にバックアップ）:
+   mv ~/Documents/nanoclaw ~/Documents/nanoclaw.backup-$(date +%Y%m%d-%H%M%S)
+
+4. リポジトリを再クローン:
+   cd ~/Documents
+   git clone https://github.com/nanocoai/nanoclaw.git
+
+5. PROMPTS.md の P0 から再スタート</pre>
+      </div>
+    </details>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🤝</span> さらに困ったとき</h2>
+
+    <table class="kv-table">
+      <tr>
+        <td>nanoclaw 本体の <code>/debug</code> スキル</td>
+        <td>ターミナルで <code>cd ~/Documents/nanoclaw && claude</code> → <code>/debug</code> と打って状況を説明する。Claude Code が nanoclaw 内部に踏み込んで診断してくれる</td>
+      </tr>
+      <tr>
+        <td>nanoclaw コミュニティ Discord</td>
+        <td><a href="https://discord.gg/VDdww8qS42" target="_blank">discord.gg/VDdww8qS42</a></td>
+      </tr>
+      <tr>
+        <td>配布元のサポート窓口</td>
+        <td>配布形態に応じた連絡先（<code>README.md</code> 末尾参照）</td>
+      </tr>
+    </table>
+
+    <div class="page-nav">
+      <a href="index.html" class="page-nav-btn">
+        <span>
+          <span class="page-nav-btn-label">← Home</span>
+          トップに戻る
+        </span>
+      </a>
+      <a href="cheatsheet.html" class="page-nav-btn page-nav-btn-primary">
+        <span>
+          <span class="page-nav-btn-label">Next →</span>
+          ncl コマンドチートシート
+        </span>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>

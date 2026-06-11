@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja" class="cheatsheet-page">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ncl コマンドチートシート | nanoclaw × Discord ハンズオン</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="container page-header-inner">
+    <a href="index.html" class="back-link">← トップに戻る</a>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span class="progress-pill"><span class="progress-dot"></span> リファレンス</span>
+      <a href="https://github.com/web3ai-gairon/pub-docs/tree/main/hands-on-nanoclaw-discord" target="_blank" class="github-link">GitHub で見る</a>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container-narrow">
+    <span class="page-hero-eyebrow">📘 リファレンス</span>
+    <h1 class="page-hero-title"><code>ncl</code> コマンドチートシート</h1>
+    <p class="page-hero-subtitle">
+      nanoclaw を運用するときに使う <code>./bin/ncl</code> コマンドと、その背景にあるデータモデル・ログの場所のリファレンス。Step 2 完了後の運用フェーズで参照してください。
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow">
+
+    <h2 class="section-title"><span class="section-title-emoji">⚙️</span> <code>ncl</code> の使い方</h2>
+    <p class="section-lead">すべて nanoclaw のルートディレクトリで実行します。</p>
+
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 基本構文</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>cd ~/Documents/nanoclaw
+./bin/ncl &lt;resource&gt; &lt;verb&gt; [--flag value ...]
+
+# ヘルプ
+./bin/ncl help                    # 全リソース一覧
+./bin/ncl &lt;resource&gt; help         # 各リソースの詳細</pre>
+    </div>
+
+    <div class="callout callout-info">
+      <div class="callout-title">💡 ショートカット</div>
+      <p>
+        <code>bin/ncl</code> を <code>/usr/local/bin/ncl</code> にシンボリックリンクしておくと、どこからでも <code>ncl ...</code> で叩けます。
+      </p>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🗺</span> データモデルの全体図</h2>
+    <div class="arch-diagram">users（誰）
+  └─ user_roles（権限：owner / admin）
+       └─ scope: 全体 or agent_groups の特定の1つ
+
+agent_groups（AIエージェントの識別子・人格を持つ）
+  ├─ agent_group_members（このエージェントと話せる人）
+  ├─ agent_destinations（このエージェントが返信を送れる宛先）
+  └─ groups/&lt;folder&gt;/
+       ├─ CLAUDE.md           ← spawn時にcomposeされる（編集禁止）
+       ├─ CLAUDE.local.md     ← 人格定義（★ここを編集）
+       └─ container.json      ← MCP, モデル等の設定
+
+messaging_groups（チャネル：DM・サーバの1チャンネル）
+  └─ unknown_sender_policy: strict | request_approval | public
+
+messaging_group_agents（wiring）
+  ├─ messaging_group_id × agent_group_id
+  └─ engage_mode: mention | mention-sticky | pattern
+       sender_scope: all | known
+       ignored_message_policy: drop | accumulate
+
+sessions（実行単位）
+  └─ コンテナを起動して、inbound.db / outbound.db で会話</div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">📋</span> よく使うコマンド</h2>
+
+    <h3 style="margin-top: 24px;">A. 状態確認</h3>
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 list 系コマンド</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>./bin/ncl messaging-groups list      # チャネル一覧（DM・サーバごと）
+./bin/ncl groups list                # エージェントグループ一覧
+./bin/ncl wirings list               # チャネル⇔エージェントの紐付け
+./bin/ncl destinations list          # エージェントの返信先カタログ
+./bin/ncl roles list                 # 権限を持つユーザー
+./bin/ncl users list                 # 認識済みユーザー
+./bin/ncl sessions list              # 実行中・過去のセッション
+./bin/ncl dropped-messages list      # 弾かれたメッセージ（原因確認に有用）</pre>
+    </div>
+
+    <h3 style="margin-top: 24px;">B. オーナー権限を付与</h3>
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 roles grant</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>./bin/ncl roles grant --user discord:&lt;USER_ID&gt; --role owner
+
+# &lt;USER_ID&gt; は ./bin/ncl users list で確認できる
+# discord: 接頭辞を必ず含める</pre>
+    </div>
+
+    <h3 style="margin-top: 24px;">C. チャネルとエージェントを紐づける（wiring 作成）</h3>
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 wirings create</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>./bin/ncl wirings create \
+  --messaging-group-id &lt;MG_ID&gt; \
+  --agent-group-id &lt;AG_ID&gt; \
+  --engage-mode mention</pre>
+    </div>
+
+    <p><code>--engage-mode</code> の選択：</p>
+    <table class="kv-table">
+      <tr>
+        <td><code>mention</code></td>
+        <td>@メンション時のみ反応（<strong>公開チャンネル推奨</strong>）</td>
+      </tr>
+      <tr>
+        <td><code>mention-sticky</code></td>
+        <td>一度メンションされたスレッド内で連続反応</td>
+      </tr>
+      <tr>
+        <td><code>pattern</code></td>
+        <td>正規表現マッチで反応（<code>.</code> = 全部反応 = DMで使う）</td>
+      </tr>
+    </table>
+
+    <h3 style="margin-top: 24px;">D. エージェントの返信先カタログを追加</h3>
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 destinations add</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>./bin/ncl destinations add \
+  --agent-group-id &lt;AG_ID&gt; \
+  --local-name &lt;local-alias&gt; \
+  --target-type channel \
+  --target-id &lt;MG_ID&gt;
+
+# エージェントが「どこに返信するか」を知っていないと、
+# サーバのチャネルでメンションされても DM に飛んでしまう</pre>
+    </div>
+
+    <h3 style="margin-top: 24px;">E. チャネルの新参者ポリシーを変更</h3>
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 messaging-groups update</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>./bin/ncl messaging-groups update \
+  --id &lt;MG_ID&gt; \
+  --unknown-sender-policy public</pre>
+    </div>
+
+    <table class="kv-table">
+      <tr>
+        <td><code>strict</code></td>
+        <td>未知の発信者は黙って弾く</td>
+      </tr>
+      <tr>
+        <td><code>request_approval</code></td>
+        <td>オーナーに承認カードを DM で送る（<strong>デフォルト</strong>）</td>
+      </tr>
+      <tr>
+        <td><code>public</code></td>
+        <td>誰でも話せる（<strong>講座サポート向き</strong>。ただし API 料金は所有者持ち）</td>
+      </tr>
+    </table>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🗂</span> DB の場所と直接読む方法</h2>
+    <p class="section-lead">データベースは SQLite。<code>ncl</code> 経由で操作するのが原則だが、デバッグで中身を見たい時：</p>
+
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 sqlite3 で v2.db を覗く</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>sqlite3 ~/Documents/nanoclaw/data/v2.db ".tables"
+sqlite3 ~/Documents/nanoclaw/data/v2.db "SELECT * FROM messaging_groups;"
+sqlite3 ~/Documents/nanoclaw/data/v2.db ".schema agent_destinations"</pre>
+    </div>
+
+    <p style="margin-top: 16px;">セッション固有の DB（メッセージ流通）：</p>
+
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 セッションDBの場所</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>ls ~/Documents/nanoclaw/data/v2-sessions/&lt;agent_group_id&gt;/&lt;session_id&gt;/
+# inbound.db (受信), outbound.db (送信)</pre>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">📁</span> ログの場所</h2>
+
+    <table class="kv-table">
+      <tr>
+        <td><code>~/Documents/nanoclaw/logs/nanoclaw.log</code></td>
+        <td>メインログ</td>
+      </tr>
+      <tr>
+        <td><code>~/Documents/nanoclaw/logs/nanoclaw.error.log</code></td>
+        <td>エラーのみ</td>
+      </tr>
+      <tr>
+        <td><code>~/Documents/nanoclaw/logs/setup.log</code></td>
+        <td>セットアップ履歴</td>
+      </tr>
+      <tr>
+        <td><code>~/Documents/nanoclaw/logs/setup-steps/</code></td>
+        <td>各ステップの詳細</td>
+      </tr>
+    </table>
+
+    <p style="margin-top: 16px;">リアルタイム監視：</p>
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 ログを tail で追う</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>tail -f ~/Documents/nanoclaw/logs/nanoclaw.log</pre>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🔄</span> ホストの再起動</h2>
+    <p class="section-lead">設定変更後（特に <code>pnpm patch</code> や <code>CLAUDE.local.md</code> 編集後）に必要：</p>
+
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 launchctl で再起動（2 ステップ）</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre># Step 1: install-slug を確認
+launchctl list | grep nanoclaw
+# → 例: 12345  0  com.nanoclaw-v2-aac6760e
+#       この場合 slug = aac6760e
+
+# Step 2: その slug でホスト再起動
+launchctl kickstart -k gui/$(id -u)/com.nanoclaw-v2-aac6760e</pre>
+    </div>
+
+    <p style="margin-top: 16px;">ワンライナーでまとめたい場合：</p>
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 SLUG 取得 → 表示 → 再起動</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre>SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+echo "Detected install-slug: $SLUG"
+launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"</pre>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">⛔</span> 全停止 / 完全リセット</h2>
+
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 停止・コンテナ停止・再起動</span>
+        <button class="copy-btn">📋 コピー</button>
+      </div>
+<pre># 停止
+launchctl unload ~/Library/LaunchAgents/com.nanoclaw-v2-*.plist
+
+# 起動コンテナを止める
+docker ps --filter "name=nanoclaw" -q | xargs -r docker stop
+
+# 起動再開
+launchctl load ~/Library/LaunchAgents/com.nanoclaw-v2-*.plist</pre>
+    </div>
+
+    <p style="margin-top: 16px;">完全リセットは <a href="trouble.html#T-RESET">T-RESET</a>（破壊的操作）を使ってください。</p>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🔗</span> 関連ドキュメント</h2>
+
+    <table class="kv-table">
+      <tr>
+        <td>nanoclaw 本体（GitHub）</td>
+        <td><a href="https://github.com/nanocoai/nanoclaw" target="_blank">github.com/nanocoai/nanoclaw</a></td>
+      </tr>
+      <tr>
+        <td>日本語 README</td>
+        <td><code>~/Documents/nanoclaw/README_ja.md</code></td>
+      </tr>
+      <tr>
+        <td>隔離モデル</td>
+        <td><a href="https://github.com/nanocoai/nanoclaw/blob/main/docs/isolation-model.md" target="_blank">docs/isolation-model.md</a></td>
+      </tr>
+      <tr>
+        <td>Claude Agent SDK</td>
+        <td><a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank">docs.anthropic.com/.../claude-code</a></td>
+      </tr>
+    </table>
+
+    <div class="page-nav">
+      <a href="trouble.html" class="page-nav-btn">
+        <span>
+          <span class="page-nav-btn-label">← Back</span>
+          診断プロンプト集
+        </span>
+      </a>
+      <a href="index.html" class="page-nav-btn page-nav-btn-primary">
+        <span>
+          <span class="page-nav-btn-label">→ Home</span>
+          トップに戻る
+        </span>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>

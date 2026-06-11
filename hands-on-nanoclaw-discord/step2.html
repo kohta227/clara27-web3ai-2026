@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja" class="step2-page">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Step 2 — 公開チャンネル + 人格化 | nanoclaw × Discord ハンズオン</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="container page-header-inner">
+    <a href="index.html" class="back-link">← トップに戻る</a>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <span class="progress-pill"><span class="progress-dot"></span> Step 2 of 2</span>
+      <a href="https://github.com/web3ai-gairon/pub-docs/tree/main/hands-on-nanoclaw-discord" target="_blank" class="github-link">GitHub で見る</a>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container-narrow">
+    <span class="page-hero-eyebrow">🎨 Step 2</span>
+    <h1 class="page-hero-title">公開チャンネル + 人格化</h1>
+    <p class="page-hero-subtitle">
+      サーバの公開チャンネルでも反応するよう設定 → スレッド自動作成を無効化 → <strong>あなたが選んだ人格</strong>を注入。<br>
+      ⭐ Step 2 の最後で <strong>Bot の人格を決めるタイミング</strong>が来ます。教材例「minta」（元気で明るいバイブコーダー）をそのまま使っても、自分の好きなキャラを書いても OK。完成イメージは「minta」の例なら <code>@minta-bot ありがとう</code> →「あざーーす！」が返ってきます。
+    </p>
+    <div class="page-hero-meta">
+      <span>⏱ 約 30〜40 分</span>
+      <span>🎯 ゴール: 自分が設計したキャラとして応答するBotができる</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow">
+
+    <div class="callout callout-info">
+      <div class="callout-title">📍 前提</div>
+      <p>
+        <a href="step1.html">Step 1</a> を完了して、Bot との DM で minta-bot が応答する状態になっていること。<br>
+        まだなら先に <a href="step1.html">Step 1</a> を済ませてください。
+      </p>
+    </div>
+
+    <div class="ai-partner">
+      <div class="ai-partner-title">Step 2 は AI 全任せフェーズ</div>
+      <p>
+        Step 1 で手動操作が中心だったのに対し、Step 2 は <strong>ほぼ全部 Claude Code がやってくれます</strong>。あなたは Discord でメンションして動作確認するだけ。
+      </p>
+      <p>
+        裏では <code>ncl</code> コマンドで wiring を作ったり、<code>pnpm patch</code> で Discord adapter にパッチを当てたり、<code>CLAUDE.local.md</code> を書き換えたりしています。中身が気になったら Claude Code に「いま何やってるの？」と聞けば全部説明してくれます。
+      </p>
+    </div>
+
+    <h2 class="section-title"><span class="section-title-emoji">🎯</span> このステップでやること</h2>
+    <ol class="steps-list">
+      <li>
+        <h3>公開チャンネルでの反応を有効化（wiring）</h3>
+        <p>Bot が DM だけでなく、サーバの公開チャンネルでもメンションに応答するように設定</p>
+      </li>
+      <li>
+        <h3>スレッド自動作成を無効化（pnpm patch）</h3>
+        <p>メンション時に Discord スレッドが作られてしまう挙動を停止。チャンネルで直接返信させる</p>
+      </li>
+      <li>
+        <h3>他ユーザーも話せるように開放</h3>
+        <p>新規ユーザーが話しかけたとき承認カード DM が飛ばないように、<code>unknown_sender_policy=public</code> へ</p>
+      </li>
+      <li>
+        <h3>minta の人格を注入（<code>CLAUDE.local.md</code>）</h3>
+        <p>テンプレ <code>assets/CLAUDE.local.md.minta</code> を Bot のエージェントグループに上書きコピー</p>
+      </li>
+      <li>
+        <h3>動作確認（PV）</h3>
+        <p>DM と公開チャンネルでメンションし、minta が「あざーーす！」など人格通り返すかチェック</p>
+      </li>
+    </ol>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🚀</span> Claude Code に投げる起動プロンプト（順番に）</h2>
+    <p class="section-lead">
+      <strong>進め方</strong>：Step 1 で開いた Claude Code の会話の続きで、<strong>下のステップを上から順に</strong>進めます。各プロンプトの「<strong>プロンプトを開く +</strong>」をクリック → 中身を「📋 コピー」→ Claude Code に貼り付け。Claude Code が「<strong>次に進んでいい?</strong>」と聞いてきたら「OK」と返事して、次のステップへ進んでください。
+    </p>
+
+    <div class="callout callout-info" style="margin-top: 16px;">
+      <div class="callout-title">📦 Step 2 の全 4 ステップ概要</div>
+      <ul class="bullets" style="margin: 8px 0 0;">
+        <li><strong>P5 — 公開チャンネルで動かす設定</strong>：DM だけでなくサーバの公開チャンネルでも反応するように <code>ncl</code> でワイヤリング</li>
+        <li><strong>P6 — スレッド自動作成を無効化</strong>：メンション時にスレッドを作らずチャンネル直下で返信させるパッチ</li>
+        <li><strong>P7 — 人格を注入</strong>：教材例「minta」か、あなたが選んだキャラを <code>CLAUDE.local.md</code> に書き込む</li>
+        <li><strong>PV — 動作確認</strong>：DM・公開チャンネル・他ユーザーで Bot が想定通り動くか最終チェック</li>
+      </ul>
+    </div>
+
+    <!-- ============ P5 ============ -->
+    <div class="prompt-step">
+      <span class="prompt-step-eyebrow">P5 / Step 1 / 4</span>
+      <h3 class="prompt-step-title">公開チャンネルでも反応するようにする（ワイヤリング）</h3>
+      <p class="prompt-step-desc">
+        セットアップ直後の nanoclaw は <strong>DM では動くが公開チャンネルでは反応しない</strong>状態です。原因は「Owner ロール未登録」「wiring 未作成」「destinations 未登録」のいずれか。<code>./bin/ncl</code> で 4 つの設定（roles / wirings / destinations / messaging-groups policy）を一括で入れます。所要 5〜10 分。
+      </p>
+      <details class="prompt-toggle">
+        <summary>📋 P5 プロンプト</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">公開チャンネル設定</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>ステップ 5: nanoclaw に Discord サーバとエージェントを正しく結びつける。
+
+セットアップ直後の nanoclaw は、Bot との DM では応答するが、公開チャンネルでは反応しないことが多いです。原因は以下のうちどれか:
+- Owner ロールがDBに未登録（DMでは Owner として認識されるが、公開チャネルでは別判定）
+- messaging_groups と agent_groups の wiring が未作成
+- agent_destinations にチャネルが未登録（エージェントが返信先を知らない）
+
+これらを `./bin/ncl` で一括解決します。
+
+1. ~/Documents/nanoclaw に移動
+
+2. 現状を把握:
+   ./bin/ncl users list
+   ./bin/ncl messaging-groups list
+   ./bin/ncl wirings list
+   ./bin/ncl destinations list
+   ./bin/ncl roles list
+
+3. 私の Discord ユーザー ID を users list から特定。形式は「discord: + 18 桁前後の数字」。確認のため私に Discord ユーザー名を聞き、users テーブルの name 列と照合する。以後のコマンドでは --user に「discord:」接頭辞を含めた完全な ID を渡す。
+
+4. 公開チャンネル用の messaging_group ID（mg-... 形式）を messaging-groups list から特定。channel_type=discord かつ is_group=1 のものが対象。
+
+5. nanoclaw が作った唯一の agent_group ID（minta-bot 用、ag-... 形式）を ./bin/ncl groups list で取得。
+
+6. 「list → 存在しなければ create」の順で、以下を実行:
+
+   # 6-A. Owner ロール（global）
+   ./bin/ncl roles grant --user discord:<USER_ID> --role owner
+
+   # 6-B. 公開チャンネル wiring（mention モード）
+   ./bin/ncl wirings create --messaging-group-id <MG_ID> --agent-group-id <AG_ID> --engage-mode mention
+
+   # 6-C. destination 追加（自動作成されないケースに備えて明示 add）
+   #   <local-alias> は半角英数とハイフンで自由に命名（例: my-class-server）
+   ./bin/ncl destinations add --agent-group-id <AG_ID> --local-name <local-alias> --target-type channel --target-id <MG_ID>
+
+   # 6-D. 誰でも話せるように
+   ./bin/ncl messaging-groups update --id <MG_ID> --unknown-sender-policy public
+
+7. 終わったら roles list / wirings list / destinations list / messaging-groups list で 4 つすべて反映されていることを確認
+
+8. 私に「Discord の公開チャンネルで @minta-bot こんにちは と打ってください」と促し、応答が来るか確認してもらう
+
+⚠️ unknown_sender_policy=public にすると誰でもメンションで Claude を呼べる = API 料金は所有者持ちです。注意喚起してください。</pre>
+        </div>
+      </details>
+      <p class="prompt-step-next">
+        ▶ Claude Code が「<strong>公開チャンネルでも応答するようになった。P6 に進んでいい?</strong>」と確認してきたら、Discord で <code>@your-bot こんにちは</code> を試して応答することを確認 → 「OK、進めて」と返答 → 下の <strong>P6</strong> を開く。
+      </p>
+    </div>
+
+    <!-- ============ P6 ============ -->
+    <div class="prompt-step">
+      <span class="prompt-step-eyebrow">P6 / Step 2 / 4</span>
+      <h3 class="prompt-step-title">メンション時のスレッド自動作成を無効化（pnpm patch）</h3>
+      <p class="prompt-step-desc">
+        デフォルトでは公開チャンネルでメンションするとスレッドが自動で作られ、その中で返信する仕様です。<strong>チャンネルで直接返信</strong>させたいので、<code>@chat-adapter/discord</code> パッケージにパッチを当てます。<code>pnpm patch</code> で恒久化されるので、パッケージ更新でも消えません。所要 5〜10 分。
+      </p>
+      <details class="prompt-toggle">
+        <summary>📋 P6 プロンプト</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">スレッド作成を無効化するパッチ</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>ステップ 6: Discord adapter にパッチを当て、メンション時のスレッド自動作成を無効化する。
+
+デフォルトの @chat-adapter/discord は、サーバの公開チャンネルでメンションされると自動的にスレッドを作成し、その中で返信します。これは長い会話の整理には便利ですが、教材や講座では「メンション → そのチャンネルに直接返信」のほうがシンプル。
+
+nanoclaw 流に pnpm patch でパッチを当てます。
+
+1. ~/Documents/nanoclaw に移動
+
+2. パッチ対象の確認:
+   node_modules/@chat-adapter/discord/dist/index.js の line ≈801 付近に「if (!discordThreadId && isMentioned)」ブロックがあり、その中で createDiscordThread() を呼んでいる。これを削除すれば、エージェントは元のチャネル直下で返信するようになる
+
+3. pnpm patch を起動:
+   pnpm patch @chat-adapter/discord@4.26.0
+   → 出力された一時ディレクトリのパスをメモ
+
+4. その一時ディレクトリの dist/index.js を開き、「if (!discordThreadId && isMentioned) { ... createDiscordThread ... }」ブロックを削除。
+   削除した位置に「// NANOCLAW-PATCH: do not auto-create a Discord thread on mention. Reply directly in the parent channel instead.」というコメントを残す
+
+5. パッチをコミット:
+   pnpm patch-commit '<一時ディレクトリのパス>'
+   → patches/@chat-adapter__discord@4.26.0.patch が生成され、pnpm-workspace.yaml の patchedDependencies に登録される
+
+6. nanoclaw ホストを再起動して、パッチ済みの adapter をロードさせる:
+   SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+   echo "Detected nanoclaw install-slug: $SLUG"
+   launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"
+
+7. 再起動完了を待ち、「Discord Gateway connected」がログに出るのを確認
+
+8. 私に「Discord で @minta-bot もう一度 hi と打ってください」と指示し、スレッドを作らずに親チャンネルで直接返答されるか確認</pre>
+        </div>
+      </details>
+      <p class="prompt-step-next">
+        ▶ Claude Code が「<strong>パッチを当ててホストを再起動した。P7 に進んでいい?</strong>」と確認してきたら、Discord で <code>@your-bot こんにちは</code> を試して<strong>スレッドが作られず</strong>直接返信されることを確認 → 「OK、進めて」と返答 → 下の <strong>P7</strong> を開く。
+      </p>
+    </div>
+
+    <!-- ============ P7 ============ -->
+    <div class="prompt-step">
+      <span class="prompt-step-eyebrow">P7 / Step 3 / 4</span>
+      <h3 class="prompt-step-title">Bot に人格を注入する（minta or 自分の好きなキャラ）</h3>
+      <p class="prompt-step-desc">
+        <strong>⭐ ここが Bot のキャラを決めるメインのタイミングです。</strong>教材例「minta」（元気で明るいバイブコーダー、「ありがとう」→「あざーーす！」と返す）を使うか、自分の好きなキャラ（落ち着いた家庭教師、英会話相手、専門家ボット…）を選びます。Claude Code が最初に「どっちにする?」と聞いてくるので、希望を伝えてください。人格は <code>groups/&lt;group-folder&gt;/CLAUDE.local.md</code> 1 枚で決まります。所要 5〜10 分。
+      </p>
+      <details class="prompt-toggle">
+        <summary>📋 P7 プロンプト</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">人格を CLAUDE.local.md に書き込む</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>ステップ 7: エージェントの人格を、私の選んだキャラに書き換える。
+
+nanoclaw の人格は groups/<group-folder>/CLAUDE.local.md に書かれた内容として注入されます。これがコンテナ内の Claude Agent SDK のシステム指示として使われ、「自分が誰か」のアイデンティティ層になります。
+
+1. グループフォルダの場所を確認:
+   ls ~/Documents/nanoclaw/groups/
+
+   出てくるフォルダのうち、_ping-test と main は nanoclaw が標準で持っているもの。それ以外の dm-with-<your-name> 形式のフォルダが、nanoclaw.sh で「What should your assistant call you?」に答えた名前に基づいて作られた、minta-bot のエージェントグループ。これが <group-folder> の正体。
+
+2. 現在の CLAUDE.local.md をバックアップ:
+   cp ~/Documents/nanoclaw/groups/<group-folder>/CLAUDE.local.md /tmp/CLAUDE.local.md.backup
+
+3. このハンズオン教材の assets/CLAUDE.local.md.minta を上書きコピー:
+   cp .../hands-on-nanoclaw-discord/assets/CLAUDE.local.md.minta ~/Documents/nanoclaw/groups/<group-folder>/CLAUDE.local.md
+
+4. 書き込んだ CLAUDE.local.md を cat で表示し、私に内容確認してもらう。気に入らない部分があれば私の希望に合わせて修正
+
+5. 既存のコンテナにキャッシュされている可能性があるので、ホスト再起動:
+   SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+   echo "Detected nanoclaw install-slug: $SLUG"
+   launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"
+
+6. ホスト起動を待ってから、私に「Discord で @minta-bot ありがとう と打って、『あざーーす！』系の煽り返しが来るか試してください」と指示</pre>
+        </div>
+      </details>
+      <p class="prompt-step-next">
+        ▶ Claude Code が「<strong>CLAUDE.local.md を書き、ホスト再起動した。動作確認に進んでいい?</strong>」と聞いてきたら、Discord で <code>@your-bot ありがとう</code> など試してキャラ通りに返答することを確認 → 「OK、進めて」と返答 → 下の <strong>PV</strong> を開く。
+      </p>
+    </div>
+
+    <!-- ============ PV ============ -->
+    <div class="prompt-step">
+      <span class="prompt-step-eyebrow">PV / Step 4 / 4 — 最終確認</span>
+      <h3 class="prompt-step-title">動作確認チェックリスト</h3>
+      <p class="prompt-step-desc">
+        DM・公開チャンネル・他ユーザーから・専門外質問、と Bot が想定通り動くか<strong>網羅的にチェック</strong>します。Claude Code が項目を 1 つずつ案内するので、Discord で実際に試して結果を返してください。全項目 ✅ ならハンズオン完了です 🎉
+      </p>
+      <details class="prompt-toggle">
+        <summary>📋 PV プロンプト</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">動作確認チェックリスト</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>最終確認: minta が想定通り動いているかチェックリスト形式で確認する。
+
+以下の項目を一つずつ私に試してもらい、結果を記録してください:
+
+【DM】
+1. Bot との DM で「こんにちは」 → 元気な minta が応答するか
+2. DM で「ありがとう」 → 「あざーーす！」系の煽り返しが来るか
+
+【公開チャンネル】
+3. 公開チャンネルで「@minta-bot こんにちは」 → スレッドを作らず親チャンネルで応答するか
+4. 公開チャンネルで「@minta-bot ありがとう」 → 「あざーーす！」が来るか
+5. 公開チャンネルで「@minta-bot web3 って何？」 → AI/web3 専門としてフレンドリーに答えるか
+6. 公開チャンネルで「@minta-bot 量子力学について教えて」 → 専門外として正直に「ぐぐって！」系に返すか
+
+【他ユーザー】
+7. 別の Discord アカウント（or 学生など別の人）から @minta-bot にメンション → DM に承認カードが飛ばず、直接応答するか
+
+各項目が想定通りなら ✅、違うなら原因を nanoclaw.log と nanoclaw.error.log から特定して TROUBLESHOOT.md の該当セクションに誘導してください。
+
+全項目 ✅ なら、ハンズオン完了です。お疲れさまでした！🎉</pre>
+        </div>
+      </details>
+      <p class="prompt-step-next">
+        ▶ 全項目 ✅ なら <strong>ハンズオン完了 🎉</strong>。下の「Step 2 完了条件」で再確認できます。<br>
+        ▶ 失敗項目があれば、<a href="trouble.html">診断プロンプト集</a>から該当する <code>T-XXX</code> を Claude Code に貼って修復してください。
+      </p>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">✅</span> Step 2 完了条件</h2>
+    <ol class="steps-list">
+      <li>
+        <h3>公開チャンネルでメンションすると応答する</h3>
+        <p>スレッドを作らず、メンションされたチャンネルで直接返信</p>
+      </li>
+      <li>
+        <h3><strong>「ありがとう」→「あざーーす！」</strong>が返る</h3>
+        <p>minta の人格が反映されている証拠</p>
+      </li>
+      <li>
+        <h3>他のユーザーがメンションしても承認カードが DM に飛ばない</h3>
+        <p><code>unknown_sender_policy=public</code> が効いている</p>
+      </li>
+      <li>
+        <h3>専門外の質問には正直に「分かんない」系で返す</h3>
+        <p>人格設定通り、AI と web3 以外には「ぐぐって！」</p>
+      </li>
+    </ol>
+
+    <div class="callout callout-success">
+      <div class="callout-title">🎉 完了！</div>
+      <p>
+        おめでとうございます。あなたの Mac の中で、自分専用の Discord 講師Bot「minta」が動いています。
+      </p>
+      <p>
+        この先のアイデア：<br>
+        • <code>CLAUDE.local.md</code> を書き換えて<strong>自分好みのキャラ</strong>にする<br>
+        • Slack や Telegram など他のチャネルを <code>/add-<channel></code> で追加<br>
+        • MCP ツール（Gmail / Calendar / Notion など）を <code>container.json</code> で連携<br>
+        • <a href="cheatsheet.html"><code>ncl</code> コマンドのチートシート</a>で運用テクを学ぶ<br>
+      </p>
+    </div>
+
+    <div class="rescue-tile">
+      <div class="rescue-tile-header">
+        <span class="rescue-tile-emoji">🆘</span>
+        <h2 class="rescue-tile-title">困ったときの自己救済プロンプト</h2>
+      </div>
+      <p>
+        Step 2 で詰まりやすい症状ごとに、<strong>そのまま Claude Code に貼って投げられるプロンプト</strong>を用意しました。当てはまる症状をクリックして開き、「コピー」ボタンで取り出してください。
+      </p>
+
+      <details class="rescue-prompt">
+        <summary>💬 DM では返事が来るが公開チャンネルで反応しない</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">📋 T-DM-OK-CHANNEL-NG 診断プロンプト</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>T-DM-OK-CHANNEL-NG: 公開チャンネルでの無反応を診断してください。
+
+1. ログを確認:
+   tail -50 ~/Documents/nanoclaw/logs/nanoclaw.log | grep -E "Inbound|Message routed|Auto-created|engage|dropped"
+   tail -30 ~/Documents/nanoclaw/logs/nanoclaw.error.log
+
+2. 以下の症状から原因を特定:
+
+   (A) "Unknown Guild" "code 10004" エラー
+   → Bot がそのサーバに招待されていない。
+   → MANUAL.md B-3（OAuth2 URL Generator）でそのサーバに招待し直す
+
+   (B) "Channel registration skipped — no owner or admin configured"
+   → Owner ロール未登録。PROMPTS.md P5 のステップを実行:
+     ./bin/ncl roles grant --user discord:&lt;USER_ID&gt; --role owner
+
+   (C) "no_agent_wired" / "no_agent_engaged" が dropped-messages に出ている
+   → wiring が無い。PROMPTS.md P5 で wirings create を実行
+
+   (D) ログには "Message delivered" が出ているが、配信先 platformId が discord:@me:XXX（DM）になっている
+   → エージェントが返信先を知らない。destinations を追加:
+     ./bin/ncl destinations add --agent-group-id &lt;AG_ID&gt; --local-name &lt;name&gt; --target-type channel --target-id &lt;MG_ID&gt;
+
+3. dropped-messages を確認:
+   ./bin/ncl dropped-messages list
+
+4. 修正後、Discord で再度メンションしてもらって動作確認</pre>
+        </div>
+      </details>
+
+      <details class="rescue-prompt">
+        <summary>🧵 メンション時にスレッドが自動で作られてしまう</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">📋 T-THREAD-CREATED 診断プロンプト</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>T-THREAD-CREATED: スレッド自動作成を無効化するパッチが当たっているか確認してください。
+
+1. パッチの存在確認:
+   ls ~/Documents/nanoclaw/patches/ 2>/dev/null
+   cat ~/Documents/nanoclaw/pnpm-workspace.yaml | grep -A 2 patchedDependencies
+
+   @chat-adapter__discord@4.26.0.patch が存在し、pnpm-workspace.yaml で参照されていれば OK。
+
+2. 無ければ PROMPTS.md P6 を実行（pnpm patch でパッチを作成）
+
+3. パッチがあるのに動作しない場合、適用されているか確認:
+   grep -A 2 "NANOCLAW-PATCH" ~/Documents/nanoclaw/node_modules/@chat-adapter/discord/dist/index.js
+   → コメントが見えればパッチ済み。見えなければ pnpm install で再適用:
+     cd ~/Documents/nanoclaw && pnpm install
+
+4. ホストを再起動（2 ステップ、slug は画面で確認）:
+   SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+   echo "Detected nanoclaw install-slug: $SLUG"
+   launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"</pre>
+        </div>
+      </details>
+
+      <details class="rescue-prompt">
+        <summary>📬 他ユーザーが話すと自分の DM に承認カードが飛ぶ</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">📋 T-APPROVAL-CARD 診断プロンプト</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>T-APPROVAL-CARD: messaging_groups の unknown_sender_policy を確認・変更してください。
+
+1. 現状確認:
+   ./bin/ncl messaging-groups list
+
+2. 該当サーバの messaging_group_id を特定して unknown_sender_policy を public に:
+   ./bin/ncl messaging-groups update --id &lt;MG_ID&gt; --unknown-sender-policy public
+
+3. 既に出ている承認カードはそのまま残るが、新しいメッセージは承認なしで通るようになる
+4. もし「特定の人だけ通したい」場合は public ではなく、./bin/ncl members add で個別に許可する方針もあるが、講座サポートなら public が現実的
+5. ⚠️ public = 誰でも話せる = API 料金は所有者持ち。注意喚起してください</pre>
+        </div>
+      </details>
+
+      <details class="rescue-prompt">
+        <summary>🎭 <code>CLAUDE.local.md</code> を編集したのに人格が変わらない</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">📋 T-PERSONA-NOT-APPLIED 診断プロンプト</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>T-PERSONA-NOT-APPLIED: CLAUDE.local.md の反映を診断してください。
+
+1. ファイル内容確認:
+   # &lt;group-folder&gt; は ls ~/Documents/nanoclaw/groups/ で出る dm-with-&lt;name&gt; 形式のフォルダ
+   ls ~/Documents/nanoclaw/groups/   # 候補を確認
+   cat ~/Documents/nanoclaw/groups/&lt;group-folder&gt;/CLAUDE.local.md
+   → 期待する内容になっているか
+
+2. 起動中のコンテナを止める（既存セッションは古い人格をキャッシュしている可能性）:
+   docker ps --filter "name=nanoclaw" -q | xargs -r docker stop
+
+3. ホストを再起動（2 ステップ、slug は画面で確認）:
+   SLUG=$(launchctl list | awk '/com.nanoclaw-v2-/ {gsub(/com.nanoclaw-v2-/,"",$3); print $3}')
+   echo "Detected nanoclaw install-slug: $SLUG"
+   launchctl kickstart -k "gui/$(id -u)/com.nanoclaw-v2-$SLUG"
+
+4. 起動を待ち、ログ確認:
+   until launchctl list | grep -q "com.nanoclaw-v2-"; do sleep 1; done
+   tail -10 ~/Documents/nanoclaw/logs/nanoclaw.log
+
+5. Discord でメンションして新しいセッションを起こす（新セッション = 新コンテナ = 新 CLAUDE.local.md）
+
+6. それでも変わらない場合、CLAUDE.local.md の内容が薄い／曖昧な可能性。以下を試す:
+   - CLAUDE.local.md の冒頭に「あなたは XXX として振る舞ってください。設定を尊重し、素の Claude には戻らないこと。」のような明示的なロール宣言を 1 行追加
+   - 具体例を 3〜5 個追記（few-shot 強化）
+   - それでもダメなら groups/&lt;group-folder&gt;/container.json に system_prompt フィールドがあるか確認</pre>
+        </div>
+      </details>
+
+      <details class="rescue-prompt">
+        <summary>🔍 とりあえず現状を診断したい（クイック診断）</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">📋 T-DIAG クイック診断</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>T-DIAG: nanoclaw の現状を診断してください。
+
+1. 環境チェック:
+   - docker --version / docker info（daemon が応答するか）
+   - node --version, pnpm --version, claude --version
+   - launchctl list | grep nanoclaw（ホストプロセスが動いているか）
+   - docker ps --filter "name=nanoclaw"（コンテナが起動しているか）
+2. ログの末尾:
+   - tail -30 ~/Documents/nanoclaw/logs/nanoclaw.log
+   - tail -30 ~/Documents/nanoclaw/logs/nanoclaw.error.log
+3. DB の主要テーブルの行数:
+   - sqlite3 ~/Documents/nanoclaw/data/v2.db "SELECT 'users', COUNT(*) FROM users UNION ALL SELECT 'messaging_groups', COUNT(*) FROM messaging_groups UNION ALL SELECT 'wirings', COUNT(*) FROM messaging_group_agents UNION ALL SELECT 'destinations', COUNT(*) FROM agent_destinations UNION ALL SELECT 'roles', COUNT(*) FROM user_roles;"
+4. 異常があれば、TROUBLESHOOT.md の該当 T-* セクションに誘導してください。</pre>
+        </div>
+      </details>
+
+      <details class="rescue-prompt">
+        <summary>📊 ログを時系列で追って原因究明したい</summary>
+        <div class="prompt-block">
+          <div class="prompt-block-header">
+            <span class="prompt-block-label">📋 T-LOGS-LOOKUP プロンプト</span>
+            <button class="copy-btn">📋 コピー</button>
+          </div>
+<pre>T-LOGS-LOOKUP: ログを横断的に確認して時系列で状況を把握してください。
+
+最近 30 分のホストログ:
+  awk -v d="$(date -v-30M -u +%H:%M)" '$0 ~ d, /9999/' ~/Documents/nanoclaw/logs/nanoclaw.log | tail -100
+
+エラーログ全体:
+  cat ~/Documents/nanoclaw/logs/nanoclaw.error.log
+
+セッション固有ログ（最新セッション）:
+  LATEST=$(ls -t ~/Documents/nanoclaw/data/v2-sessions/*/ | head -1)
+  ls -lt $LATEST
+  # inbound.db / outbound.db を直接覗く:
+  sqlite3 $LATEST/inbound.db "SELECT * FROM messages_in ORDER BY rowid DESC LIMIT 3;"
+  sqlite3 $LATEST/outbound.db "SELECT * FROM messages_out ORDER BY rowid DESC LIMIT 3;"
+
+特定の Discord メッセージ ID を追う:
+  grep &lt;MESSAGE_ID&gt; ~/Documents/nanoclaw/logs/nanoclaw.log</pre>
+        </div>
+      </details>
+
+      <p style="margin-top: 14px; font-size: 0.88rem;">これ以外の症状や、上記で解決しなかった場合は <a href="trouble.html">診断プロンプト集</a> 全体を参照。完全リセットは <code>T-RESET</code>（破壊的なのでバックアップ後に）。</p>
+    </div>
+
+    <div class="page-nav">
+      <a href="step1.html" class="page-nav-btn">
+        <span>
+          <span class="page-nav-btn-label">← Back</span>
+          Step 1: 土台を作る
+        </span>
+      </a>
+      <a href="customize.html" class="page-nav-btn page-nav-btn-primary">
+        <span>
+          <span class="page-nav-btn-label">→ Next</span>
+          応用編：カスタマイズして遊ぶ
+        </span>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>

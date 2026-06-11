@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja" class="customize-page">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>カスタマイズ | 教えて、minta先生 ハンズオン</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="container page-header-inner">
+    <a href="index.html" class="back-link">← トップに戻る</a>
+    <span class="progress-pill"><span class="progress-dot"></span> Customize</span>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container-narrow">
+    <span class="page-hero-eyebrow">🎨 Customize</span>
+    <h1 class="page-hero-title">カスタマイズして遊ぶ</h1>
+    <p class="page-hero-subtitle">
+      Step 1〜3 で動いたアプリを <strong>自分だけのアプリ</strong>に変えていきましょう。<br>
+      minta先生 の人格を変える、別の API と組み合わせる、DB スキーマを拡張する など、レシピ集。
+    </p>
+    <div class="page-hero-meta">
+      <span>🌱 Step 3 完了が前提</span>
+      <span>🎯 自分のオリジナル作品を作る</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow">
+
+    <div class="ai-partner">
+      <div class="ai-partner-title">「動くサンプル」から「自分の作品」へ</div>
+      <p>
+        ハンズオンで作った「教えて、minta先生」は、<strong>あなたが書き換える前提のテンプレ</strong>です。<br>
+        Claude Code と対話しながら、思いついた改造をどんどん試してください。動かなくなっても <code>git revert</code> で戻せます。
+      </p>
+    </div>
+
+    <h2 class="section-title"><span class="section-title-emoji">🌱</span> やさしいカスタマイズ（10〜30分）</h2>
+
+    <div class="customize-recipe">
+      <h3>🎭 minta先生を別キャラに変える</h3>
+      <p><strong>編集箇所:</strong> <code>src/lib/minta.ts</code> の <code>MINTA_SYSTEM_PROMPT</code></p>
+      <p>例: 「冷静沈着な執事 Sebastian」「江戸時代の蘭学者」「未来から来たロボット教師」「猫」「あなたの推しキャラ」など。回答のトーンや一人称、口調を書き換えるだけで全く別物になります。</p>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 Claude Code に投げるプロンプト例</span>
+          <button class="copy-btn" data-copy-target="recipe-persona">コピー</button>
+        </div>
+        <pre id="recipe-persona">src/lib/minta.ts の MINTA_SYSTEM_PROMPT を、以下のキャラに合わせて書き換えてください。
+
+# キャラ設定
+- 名前: __ (例: Sebastian)
+- 役柄: __ (例: ヴィクトリア朝の執事)
+- 口調: __ (例: 丁寧・古風・第三人称)
+- 専門領域: __ (例: 科学とテクノロジー全般)
+- NG: 個人情報を扱わない / 政治・宗教には触れない
+
+人格定義を書き換えたら、画面のヘッダー文字列「教えて、minta先生」も、新しいキャラ名に合わせて src/app/page.tsx を更新してください。</pre>
+      </div>
+    </div>
+
+    <div class="customize-recipe">
+      <h3>🎨 見た目の色を変える</h3>
+      <p><strong>編集箇所:</strong> <code>src/app/page.tsx</code> の Tailwind CSS クラス</p>
+      <p>例: ピンク (<code>rose-*</code>) を ブルー (<code>sky-*</code>) や グリーン (<code>emerald-*</code>) に。Tailwind 4 のカラーパレットは <a href="https://tailwindcss.com/docs/colors" target="_blank">公式ドキュメント</a>で確認できます。</p>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 プロンプト例</span>
+          <button class="copy-btn" data-copy-target="recipe-color">コピー</button>
+        </div>
+        <pre id="recipe-color">src/app/page.tsx 内の Tailwind カラー (rose-50, rose-500 など) を、すべて __ (例: sky) に置き換えてください。
+hover の色も同様に変更してください。</pre>
+      </div>
+    </div>
+
+    <div class="customize-recipe">
+      <h3>📝 質問のテンプレを変える</h3>
+      <p><strong>編集箇所:</strong> <code>src/app/page.tsx</code> の <code>placeholder</code> 文字列</p>
+      <p>「例: Next.js の App Router と Pages Router の違いを教えてください」を、自分のターゲットユーザーが聞きたくなるような例に書き換える。</p>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 64px;"><span class="section-title-emoji">🌿</span> 中級カスタマイズ（30〜60分）</h2>
+
+    <div class="customize-recipe">
+      <h3>🧪 DB スキーマを拡張する</h3>
+      <p><strong>編集箇所:</strong> <code>assets/supabase-schema.sql</code> + <code>src/lib/supabase.ts</code> の型 + <code>src/app/api/ask/route.ts</code></p>
+      <p>例: <code>sentiment</code> (感情: 喜び/怒り/悲しみ/驚き/その他) のカラムを追加。LLM 分析プロンプトで感情判定を加え、保存する。</p>
+      <div class="prompt-block">
+        <div class="prompt-block-header">
+          <span class="prompt-block-label">📋 プロンプト例</span>
+          <button class="copy-btn" data-copy-target="recipe-schema">コピー</button>
+        </div>
+        <pre id="recipe-schema">qa_logs テーブルに sentiment カラム (text型) を追加してください。
+
+具体的にやってほしいこと:
+1. assets/supabase-schema.sql に ALTER TABLE 文を追加 (既存テーブルにカラム追加)
+2. Supabase の SQL Editor で実行する SQL を出力 (私が手動で実行する)
+3. src/lib/supabase.ts の QaLog interface に sentiment を追加
+4. src/lib/pii.ts の AnalysisResult interface に sentiment を追加
+5. src/lib/pii.ts の ANALYZER_INSTRUCTION で sentiment を判定するよう指示を追加
+6. src/app/api/ask/route.ts で sentiment を insert に含める
+7. src/app/page.tsx の履歴表示で sentiment をバッジ表示
+
+セキュリティ注意: ALTER TABLE は本番DB で慎重に実行する</pre>
+      </div>
+    </div>
+
+    <div class="customize-recipe">
+      <h3>📈 質問の集計ダッシュボードを追加</h3>
+      <p><strong>新規ページ:</strong> <code>src/app/stats/page.tsx</code></p>
+      <p>カテゴリ別の質問数、時間帯別の分布、人気トピックなどを集計・グラフ表示。簡単な統計ダッシュボードが作れます。<br>chart.js / recharts などのライブラリを Claude Code に install してもらう。</p>
+    </div>
+
+    <div class="customize-recipe">
+      <h3>🌍 言語切り替え対応</h3>
+      <p><strong>編集箇所:</strong> <code>src/lib/minta.ts</code> の system prompt + UI 文字列</p>
+      <p>英語版を作って、ヘッダーで「日本語 / English」切り替え。海外の友人にも触ってもらえる教材になる。</p>
+    </div>
+
+    <div class="customize-recipe">
+      <h3>🔔 質問数が一定を超えたら通知</h3>
+      <p><strong>新規:</strong> Vercel Cron + Slack / Discord Webhook</p>
+      <p>1時間ごとに DB をチェック → 質問数が増えていれば管理者に通知。<br>Vercel Cron Jobs (Hobby プランは月100回まで無料) を使えば実装できます。</p>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 64px;"><span class="section-title-emoji">🌳</span> 上級カスタマイズ（半日〜）</h2>
+
+    <div class="customize-recipe">
+      <h3>🔐 認証を追加</h3>
+      <p><strong>新規:</strong> Supabase Auth + Login UI</p>
+      <p>ログインしないと質問できないようにする。Discord / Google OAuth で簡単に。Supabase は Auth が同梱されているので、追加コストなし。</p>
+    </div>
+
+    <div class="customize-recipe">
+      <h3>💳 課金（プロ版機能）を追加</h3>
+      <p><strong>新規:</strong> Stripe API + Vercel Subscription</p>
+      <p>無料: 1日5回まで質問 / 有料: 無制限 + 履歴閲覧、のような分岐を作る。Stripe Checkout で実装。</p>
+    </div>
+
+    <div class="customize-recipe">
+      <h3>🎨 別アプリへ転用</h3>
+      <p>この骨格は <strong>「ユーザー入力 → LLM 加工 → DB 蓄積」</strong>パターンの最小サンプル。以下のように別ジャンルへ転用できます。</p>
+      <ul class="bullets">
+        <li><strong>英作文添削 BOT</strong>: 質問 → 英作文の評価とリライト → 評価点と分野を DB に保存</li>
+        <li><strong>料理レシピ提案</strong>: 「冷蔵庫にある食材」入力 → レシピ提案 → 人気食材を集計</li>
+        <li><strong>キャリア相談 BOT</strong>: 「悩み」入力 → アドバイス → 悩みカテゴリの傾向分析</li>
+        <li><strong>web3 用語解説 BOT</strong>: 「分からない単語」入力 → 解説 → よく分からない単語のランキング</li>
+        <li><strong>授業フィードバック収集</strong>: 「今日の授業の感想」 → 要約 → 講師向けにダッシュボード</li>
+      </ul>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 64px;"><span class="section-title-emoji">🛡</span> カスタマイズ時のセキュリティ要点</h2>
+    <ul class="bullets">
+      <li><strong>新しい API を追加するとき</strong>: API キーを必ず環境変数経由で受け取る。コードに直接書かない。</li>
+      <li><strong>DB スキーマ変更</strong>: ALTER TABLE は本番に流す前に必ず Supabase の Database Backups を確認。</li>
+      <li><strong>認証を追加するとき</strong>: パスワードリセット導線、Email 認証、CSRF 対策まで含めて設計。</li>
+      <li><strong>外部からデータを受け取る API</strong>: 必ず入力バリデーション。長さ制限・型チェック・SQL injection / XSS 対策。</li>
+      <li><strong>PII を扱う場合</strong>: 「保存しない」「ログに出さない」を初期設定として、必要な場合だけ明示的に解除。</li>
+      <li><strong>本番運用前のセキュリティ レビュー</strong>: Claude Code に <code>/security-review</code> スラッシュコマンド (もしあれば) を使う or 「セキュリティ上の懸念点をリストアップして」と頼む習慣を付ける。</li>
+    </ul>
+
+    <h2 class="section-title" style="margin-top: 64px;"><span class="section-title-emoji">📚</span> 学びを深めるリソース</h2>
+    <table class="kv-table">
+      <tr><td>Next.js 公式</td><td><a href="https://nextjs.org/learn" target="_blank">nextjs.org/learn</a> - インタラクティブな学習</td></tr>
+      <tr><td>Gemini API ガイド</td><td><a href="https://ai.google.dev/gemini-api/docs" target="_blank">ai.google.dev/gemini-api/docs</a></td></tr>
+      <tr><td>Supabase Docs</td><td><a href="https://supabase.com/docs" target="_blank">supabase.com/docs</a> - Auth, Realtime, Edge Functions 等</td></tr>
+      <tr><td>Vercel Docs</td><td><a href="https://vercel.com/docs" target="_blank">vercel.com/docs</a> - Cron, Edge Config 等</td></tr>
+      <tr><td>Claude Code Docs</td><td><a href="https://docs.claude.com/claude-code" target="_blank">docs.claude.com/claude-code</a></td></tr>
+    </table>
+
+    <div class="callout callout-info" style="margin-top: 24px;">
+      <div class="callout-title">🌟 完成品をシェアする</div>
+      <p>
+        作った作品を <strong>GitHub に push して URL を Discord でシェア</strong>するのが最高の学びになります。<br>
+        他人の改造を見て「こんな発想があるのか」と気づくのが、コミュニティ学習の醍醐味です。<br>
+        ハッシュタグ <code>#minta先生派生</code> でX投稿したり、Notionで自慢したりも歓迎。
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      Powered by Next.js · Gemini · Supabase · Vercel · Claude Code
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja" class="step2-page">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Step 2 — Vercel にデプロイ | 教えて、minta先生 ハンズオン</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="page-header">
+  <div class="container page-header-inner">
+    <a href="index.html" class="back-link">← トップに戻る</a>
+    <span class="progress-pill"><span class="progress-dot"></span> Step 2 of 3</span>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container-narrow">
+    <span class="page-hero-eyebrow">☁️ Step 2</span>
+    <h1 class="page-hero-title">Vercel にデプロイ</h1>
+    <p class="page-hero-subtitle">
+      ローカルで動いたコードを GitHub に push し、<strong>Vercel</strong> で世界に公開します。
+      環境変数として <code>GEMINI_API_KEY</code> を Vercel 上で設定する流れを体験します。
+    </p>
+    <div class="page-hero-meta">
+      <span>⏱ 約 10〜15 分</span>
+      <span>🎯 ゴール: 公開URLで minta先生が答える</span>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow">
+
+    <div class="ai-partner">
+      <div class="ai-partner-title">Step 2 でやること（概要）</div>
+      <p>
+        ローカルで動くアプリを「世界からアクセスできるアプリ」にします。<br>
+        Vercel は <strong>GitHub と連携するだけで自動的に Next.js を本番ビルド → デプロイ → 公開URL発行</strong>してくれるサービス。<br>
+        受講者は GitHub と Vercel のアカウントさえあれば、コマンドラインを触らずに公開できます。
+      </p>
+    </div>
+
+    <h2 class="section-title"><span class="section-title-emoji">🎯</span> このステップでやること</h2>
+    <ol class="steps-list">
+      <li>
+        <h3>GitHub アカウント準備</h3>
+        <p>無料でOK。受講者は自分の本名 or ニックネームで取得済みであることが多い</p>
+      </li>
+      <li>
+        <h3>サンプルレポを fork or 自分のレポに push</h3>
+        <p>テンプレートから自分のレポを作る or ローカルで clone したやつを自分のレポに push し直す</p>
+      </li>
+      <li>
+        <h3>Vercel アカウント準備</h3>
+        <p>GitHub アカウントで sign in（数十秒）</p>
+      </li>
+      <li>
+        <h3>Vercel に Import</h3>
+        <p>「New Project」→ 自分のレポを選ぶ → Next.js が自動検出される</p>
+      </li>
+      <li>
+        <h3>環境変数を入力</h3>
+        <p><code>GEMINI_API_KEY</code> を Vercel の Environment Variables に登録</p>
+      </li>
+      <li>
+        <h3>Deploy ボタン</h3>
+        <p>1〜2 分待つと公開URL（例: <code>https://your-app.vercel.app</code>）が出る</p>
+      </li>
+      <li>
+        <h3>動作確認</h3>
+        <p>公開URLで質問を投げて minta先生から回答が返ってくれば完了</p>
+      </li>
+    </ol>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🚀</span> Claude Code に投げるプロンプト</h2>
+    <p class="section-lead">
+      Step 1 と同じ会話の続きで、もしくは新しい会話で以下を貼ってください。
+    </p>
+
+    <div class="prompt-block">
+      <div class="prompt-block-header">
+        <span class="prompt-block-label">📋 Step 2 起動プロンプト</span>
+        <button class="copy-btn" data-copy-target="step2-prompt">コピー</button>
+      </div>
+      <pre id="step2-prompt"># Step 2: Vercel にデプロイ
+
+Step 1 でローカルで動いた「教えて、minta先生」アプリを、Vercel にデプロイして公開URLで動くようにします。
+
+## 私の状況
+- Step 1 完了: ローカル http://localhost:3000 で動いている
+- GitHub アカウント: __ (例: github.com/your-username)
+- Vercel アカウント: __ (まだ無ければ取得から)
+
+## ゴール
+- 公開URL (例: https://minta-sensei-handson.vercel.app) で minta先生が答える
+- Vercel ダッシュボードで環境変数を管理できる状態
+
+## 進め方
+
+### 1. GitHub に自分のレポを作る
+- まず GitHub にログインして、新規レポ (例: minta-sensei-handson) を Public で作成
+- ローカルの clone 元 (web3ai-gairon/minta-sensei-handson) の remote を、自分のレポに付け替え:
+  - `git remote set-url origin git@github.com:YOUR-USERNAME/minta-sensei-handson.git`
+  - もしくは `git remote add mine git@github.com:YOUR-USERNAME/minta-sensei-handson.git`
+- `git push -u origin main` (or `git push -u mine main`) で push
+
+### 2. .gitignore 確認
+- `.env.local` が .gitignore に含まれていることを再確認
+- 万が一すでにコミットしていないか `git log --all -- .env.local` で確認
+- 心配なら Claude Code に「.env.local が GitHub に push されていないか確認して」と頼む
+
+### 3. Vercel に Import
+- vercel.com → Sign in with GitHub
+- New Project → 作ったレポを選ぶ → Import
+- Framework Preset: Next.js が自動検出されるはず
+- Root Directory: そのまま (./)
+
+### 4. 環境変数を入力
+- 「Environment Variables」セクションを開く
+- Name: GEMINI_API_KEY
+- Value: 自分の Gemini API キー (sk-... ではなく AIza... で始まる Google のキー)
+- **重要: キーを私 (Claude Code) のチャットに貼らせない。Vercel ダッシュボードに私が直接入力する**
+- 全環境 (Production / Preview / Development) にチェック
+
+### 5. Deploy
+- Deploy ボタンを押す
+- 1-2 分待つ
+- 「Visit」ボタンが出たら、公開URLが完成
+
+### 6. 動作確認
+- 公開URLで質問を投げて、minta先生が答えるか確認
+- ダメだったら Vercel の Deployments タブ → 失敗したデプロイをクリック → Runtime Logs をチェック
+- ログを私が読んで、原因と対処を伝える
+
+## セキュリティ注意
+- API キーをチャットに貼らせない (Vercel ダッシュボードに直接入力させる)
+- Vercel の環境変数は「Sensitive」フラグを付けると、ダッシュボード上でも値が伏せられる
+- 公開URLは世界からアクセス可能。本番運用前に rate limit / 認証を検討する
+
+それでは Step 2 を始めてください。</pre>
+    </div>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🔐</span> 環境変数についての解説</h2>
+    <p class="section-lead">「環境変数って何？」が初めての人向け。</p>
+
+    <table class="kv-table">
+      <tr>
+        <td><strong>環境変数とは</strong></td>
+        <td>プログラムが OS から読み取れる「設定値」のこと。コードに直接 API キーを書く代わりに、環境変数として外から渡す</td>
+      </tr>
+      <tr>
+        <td><strong>なぜ使うか</strong></td>
+        <td>① コードに秘密の値を書くと、GitHub に push したときに世界中に漏れる<br>② 開発環境と本番環境で値を変えたい<br>③ チーム開発で個々のキーを持てる</td>
+      </tr>
+      <tr>
+        <td><strong>ローカルでは</strong></td>
+        <td><code>.env.local</code> ファイルに書く。Next.js が <code>process.env.GEMINI_API_KEY</code> として読み取る</td>
+      </tr>
+      <tr>
+        <td><strong>Vercel では</strong></td>
+        <td>ダッシュボード → Settings → Environment Variables で登録。デプロイ時にコンテナの環境変数として注入される</td>
+      </tr>
+      <tr>
+        <td><strong>クライアントから読める変数</strong></td>
+        <td><code>NEXT_PUBLIC_</code> から始まる名前にすると、ブラウザ側 JS からも見える（だから機密にしてはいけない）。サーバ側だけで使う秘密キーは <code>NEXT_PUBLIC_</code> を付けない</td>
+      </tr>
+    </table>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">🛡</span> セキュリティで気をつけること</h2>
+    <ul class="bullets">
+      <li><strong>API キーを GitHub に絶対に push しない。</strong>過去にコミットしてしまっていたら、すぐ Revoke して新しいキーに差し替え。</li>
+      <li><strong>レポを Public にする前に、コミット履歴を確認</strong>: <code>git log --all -p | grep -i 'api_key\|secret\|sk-\|AIza'</code> 等で検索。</li>
+      <li><strong>Vercel の環境変数の「Sensitive」フラグ</strong>を ON にすると、ダッシュボード上でも値が伏せられる。チームで作業する場合に有効。</li>
+      <li><strong>公開URLは世界中からアクセス可能。</strong>悪用されると課金されたり、API クォータが減ったりする。本番運用するなら必ず認証 / レート制限を入れる。</li>
+      <li><strong>Preview デプロイにも環境変数が共有される。</strong>PR から派生する Preview URL も世界からアクセス可能なので、機密データを扱う場合はスコープを Production だけに絞る選択肢もある。</li>
+    </ul>
+
+    <h2 class="section-title" style="margin-top: 48px;"><span class="section-title-emoji">✅</span> Step 2 完了チェック</h2>
+    <ul class="bullets">
+      <li>☐ 自分の GitHub レポにコードが push されている</li>
+      <li>☐ Vercel のダッシュボードにプロジェクトが作られている</li>
+      <li>☐ Environment Variables に <code>GEMINI_API_KEY</code> が登録されている</li>
+      <li>☐ 公開URL (vercel.app) で minta先生に質問できる</li>
+      <li>☐ 質問への回答が日本語で返ってくる</li>
+      <li>☐ <code>.env.local</code> がGitHubに含まれていない</li>
+    </ul>
+
+    <div class="callout callout-info" style="margin-top: 24px;">
+      <div class="callout-title">💡 ここまでで体験したこと</div>
+      <p>
+        「自分の PC で動くアプリ」と「世界からアクセスできるアプリ」のギャップは、実は <strong>環境変数を Vercel に登録するだけ</strong>でほぼ埋まりました。<br>
+        コードは変わっていません。<strong>同じコードが、同じ API キーの値を別ルートで受け取って動く</strong>だけ。これが「設定とコードを分離する」考え方の威力です。
+      </p>
+    </div>
+
+    <div class="next-step-card">
+      <div class="next-step-card-eyebrow">Next →</div>
+      <h3>Step 3: Supabase を繋ぐ</h3>
+      <p>Vercel から <strong>ワンクリックで Supabase</strong> を Connect。データベースが自動で繋がり、質問・回答の分析メタが蓄積されるようになります。</p>
+      <a href="step3.html" class="next-step-card-link">Step 3 に進む →</a>
+    </div>
+
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      Powered by Next.js · Gemini · Supabase · Vercel · Claude Code
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

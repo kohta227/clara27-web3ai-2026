@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>教えて、minta先生 — DB連携・API連携ハンズオン教材</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-eyebrow">
+      <span class="hero-eyebrow-dot"></span>
+      ハンズオン · v2026.5
+    </div>
+    <h1 class="hero-title">
+      AI（API連携）と<br>
+      DB（Supabase）を組み合わせた<br>
+      最小サンプルアプリを<br>
+      1 時間で作る
+    </h1>
+    <p class="hero-subtitle">
+      Next.js + Gemini API + Supabase + Vercel で「教えて、minta先生」を組み立てるハンズオン。
+      ローカルで動かす → GitHub に置く → Vercel にデプロイ → Vercel から Supabase を Connect。
+      「API キーを環境変数に入れる」「DB が簡単に繋がる」を、手を動かしながら体感します。
+    </p>
+    <div class="hero-badges">
+      <span class="hero-badge">⚡ 約 30–60 分</span>
+      <span class="hero-badge">💰 Gemini 無料枠 + それ以外無料（OpenAI フォールバック対応）</span>
+      <span class="hero-badge">🔒 個人情報はDBに保存しない設計</span>
+      <span class="hero-badge">🖥 Mac / Win(WSL2) / Linux</span>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="steps-grid">
+    <a href="step1.html" class="step-card step1">
+      <div class="step-card-icon">💻</div>
+      <div class="step-card-label">Step 1</div>
+      <h2 class="step-card-title">ローカルで動かす</h2>
+      <p class="step-card-desc">
+        Gemini API キーを取得して <code>.env.local</code> に入れ、<code>npm run dev</code> で起動。<br>
+        ブラウザで「minta先生」が答える状態を作ります。まだ DB は繋がない。
+      </p>
+      <div class="step-card-meta">
+        <span class="step-card-meta-item">⏱ 約 10–15 分</span>
+        <span class="step-card-meta-item">🎯 質問→回答が動けば完了</span>
+      </div>
+      <span class="step-card-cta">始める</span>
+    </a>
+
+    <a href="step2.html" class="step-card step2">
+      <div class="step-card-icon">☁️</div>
+      <div class="step-card-label">Step 2</div>
+      <h2 class="step-card-title">Vercel にデプロイ</h2>
+      <p class="step-card-desc">
+        GitHub にコードを置き、Vercel から Import。Gemini API キーを環境変数として登録。<br>
+        公開URLでも minta先生が答える状態に。
+      </p>
+      <div class="step-card-meta">
+        <span class="step-card-meta-item">⏱ 約 10–15 分</span>
+        <span class="step-card-meta-item">🎯 公開URLで動けば完了</span>
+      </div>
+      <span class="step-card-cta">始める</span>
+    </a>
+
+    <a href="step3.html" class="step-card step3">
+      <div class="step-card-icon">🗄</div>
+      <div class="step-card-label">Step 3</div>
+      <h2 class="step-card-title">Supabase を繋ぐ</h2>
+      <p class="step-card-desc">
+        Vercel Marketplace から Supabase を Connect → 環境変数が自動投入。<br>
+        SQL Editor でテーブル作成 → Redeploy → 履歴がDBに蓄積される。
+      </p>
+      <div class="step-card-meta">
+        <span class="step-card-meta-item">⏱ 約 10–15 分</span>
+        <span class="step-card-meta-item">🎯 履歴一覧が表示されれば完了</span>
+      </div>
+      <span class="step-card-cta">始める</span>
+    </a>
+  </div>
+
+  <a href="customize.html" class="customize-card">
+    <div class="customize-card-title">🎨 完成後 — カスタマイズして遊ぶ</div>
+    <p class="customize-card-desc">
+      <code>src/lib/minta.ts</code> の system prompt を書き換えるだけで、minta先生を別キャラに変えられます。
+      「質問BOT」→「英文添削BOT」「学食レコメンドBOT」「ポエム生成BOT」など、自由に派生させる例を紹介。
+      DB のスキーマを拡張して別の分析メタを取るレシピも。
+    </p>
+  </a>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title"><span class="section-title-emoji">🗺</span> 全体アーキテクチャ</h2>
+    <p class="section-lead">作るものの設計図。Step 1 で左半分、Step 2 で中央、Step 3 で右側を組み立てます。</p>
+    <div class="arch-diagram">[ ブラウザ ]
+      ↕ HTTP
+[ Next.js (Vercel) ]                  ← Step 2 でデプロイ
+  │
+  ├──→ [ Gemini API (or OpenAI) ]     ← Step 1 で接続
+  │     ① minta先生として回答
+  │     ② 質問・回答を分析してPII除去
+  │
+  └──→ [ Supabase (PostgreSQL) ]      ← Step 3 で接続
+        ③ 分析メタを蓄積（個人情報は保存しない）
+
+  ↕  これら全部を組み立てるのが  ↑
+[ Claude Code ]   ← あなたの伴走パートナー</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title"><span class="section-title-emoji">✨</span> このハンズオンが目指していること</h2>
+    <div class="feature-grid">
+      <div class="feature-tile">
+        <div class="feature-tile-icon">🔌</div>
+        <div class="feature-tile-title">API連携の最短経路</div>
+        <div class="feature-tile-desc">Gemini API キーを環境変数に入れる→呼び出す→返ってくる、までを実装で体験</div>
+      </div>
+      <div class="feature-tile">
+        <div class="feature-tile-icon">🗄</div>
+        <div class="feature-tile-title">DB連携の最短経路</div>
+        <div class="feature-tile-desc">Vercel から Supabase をワンクリック Connect → 環境変数自動投入 → SQL 一発でテーブル作成</div>
+      </div>
+      <div class="feature-tile">
+        <div class="feature-tile-icon">🛡</div>
+        <div class="feature-tile-title">PII除去の設計</div>
+        <div class="feature-tile-desc">regex で機械的に消す + LLM で文脈判断、の二段でDB保存前に個人情報を除く実装パターン</div>
+      </div>
+      <div class="feature-tile">
+        <div class="feature-tile-icon">🤝</div>
+        <div class="feature-tile-title">Claude Code との協業</div>
+        <div class="feature-tile-desc">プロンプトをコピペ→対話で進める。完成形コードを書き換えながら学ぶ</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title"><span class="section-title-emoji">📚</span> 配布物のファイル一覧</h2>
+    <p class="section-lead">受講者がじかに開くのは <strong>HTML 5 ページ</strong>(index / step1 / step2 / step3 / customize)。残りは Claude Code が読む or 配布者向け。</p>
+    <details>
+      <summary>📁 全ファイル一覧 (クリックで展開)</summary>
+      <div class="details-body">
+        <p><strong>受講者向け (HTML — このページから移動)</strong></p>
+        <ul class="bullets">
+          <li><code>index.html</code> — このページ</li>
+          <li><code>step1.html</code> — ローカル動作確認</li>
+          <li><code>step2.html</code> — Vercel デプロイ</li>
+          <li><code>step3.html</code> — Supabase 連携</li>
+          <li><code>customize.html</code> — 完成後のカスタマイズ</li>
+        </ul>
+        <p><strong>Claude Code が読む参考資料</strong></p>
+        <ul class="bullets">
+          <li><code>README.md</code> — 文書版の概観</li>
+          <li><code>PROMPTS.md</code> — 詳細プロンプト集 (Step 1/2/3 から参照)</li>
+          <li><code>MANUAL.md</code> — 外部サービス手動手順 (Gemini / OpenAI / Supabase / Vercel / GitHub)</li>
+          <li><code>TROUBLESHOOT.md</code> — 症状別診断プロンプト</li>
+        </ul>
+        <p><strong>配布者向け</strong></p>
+        <ul class="bullets">
+          <li><code>DISTRIBUTION.md</code> — 配布手順</li>
+          <li><code>INSTRUCTOR.md</code> — 転用ガイド</li>
+        </ul>
+        <p><strong>リファレンス実装 & 補助</strong></p>
+        <ul class="bullets">
+          <li><code>reference-app/</code> — 完成形 Next.js プロジェクト</li>
+          <li><code>assets/supabase-schema.sql</code> — DB スキーマ DDL</li>
+          <li><code>assets/env.template</code> — <code>.env.local</code> テンプレ</li>
+          <li><code>LICENSE</code> — CC BY-NC-SA 4.0</li>
+          <li><code>style.css</code> / <code>app.js</code> — このページの見た目用</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow">
+    <h2 class="section-title"><span class="section-title-emoji">📜</span> この教材について</h2>
+    <p class="section-lead">読む前にここを確認すると、教材の温度感がわかります。</p>
+
+    <table class="kv-table">
+      <tr>
+        <td>🗓 バージョン</td>
+        <td><strong>2026.5</strong> 時点の情報をベースに作成。Next.js v16.2.6 / Gemini gemini-2.5-flash / OpenAI gpt-4o-mini / Supabase JS v2.x / Vercel UI など、各サービスのバージョンや UI は時期によって変わります。ズレを感じたら Claude Code に「現在の仕様で読み替えて」と頼んでください。</td>
+      </tr>
+      <tr>
+        <td>🎯 位置づけ</td>
+        <td><strong>遊びながら自分で学んでいくための補助教材</strong>です。完璧な手順書ではありません。迷ったら Claude Code と対話 → 試す → 失敗 → 直す、のサイクルで進めるのが本来の使い方。詰まる経験そのものが学びです。</td>
+      </tr>
+      <tr>
+        <td>📄 ライセンス</td>
+        <td><strong>CC BY-NC-SA 4.0</strong>。クレジット表記して非営利で使う限り、<strong>改変・再配布は自由</strong>。商用利用のみ別途要相談。</td>
+      </tr>
+      <tr>
+        <td>🌱 推奨される使い方</td>
+        <td>
+          自分の用途・授業・組織に合わせて<strong>自由に改変</strong> → 自分の GitHub にフォークして公開 → コミュニティで共有が大歓迎です。
+          「minta先生を別キャラに変えた」「DBスキーマを拡張した」など、それぞれの文脈で枝分かれしていくのが理想。
+          改変版を世に出すときは <code>LICENSE</code> をそのまま付け、自身の名前・所属を README に追記してください。
+        </td>
+      </tr>
+    </table>
+
+    <div class="callout callout-info" style="margin-top: 24px;">
+      <div class="callout-title">🤝 改変・配布を歓迎します</div>
+      <p>
+        この教材は「動いて終わり」ではなく、<strong>みんなで育てる前提</strong>で書いています。気づいたこと・直したい部分・派生例があれば、フォークして GitHub に push、コミュニティで共有してください。<br>
+        改変ガイドは <a href="INSTRUCTOR.md" target="_blank">INSTRUCTOR.md</a>、配布手順は <a href="DISTRIBUTION.md" target="_blank">DISTRIBUTION.md</a> にまとめてあります。
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>教えて、minta先生</h4>
+        <p>千葉工業大学「web3・AI概論 2026」のために開発されたハンズオン教材。他の授業・個人学習にも再利用可能。</p>
+        <p style="margin-top: 10px;">バージョン: 2026.5 / ライセンス: CC BY-NC-SA 4.0</p>
+      </div>
+      <div>
+        <h4>ハンズオン</h4>
+        <ul>
+          <li><a href="step1.html">Step 1: ローカルで動かす</a></li>
+          <li><a href="step2.html">Step 2: Vercel デプロイ</a></li>
+          <li><a href="step3.html">Step 3: Supabase 連携</a></li>
+          <li><a href="customize.html">カスタマイズ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>参考資料</h4>
+        <ul>
+          <li><a href="README.md">README.md</a></li>
+          <li><a href="MANUAL.md">MANUAL.md</a></li>
+          <li><a href="TROUBLESHOOT.md">TROUBLESHOOT.md</a></li>
+          <li><a href="LICENSE">LICENSE</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      Powered by Next.js · Gemini · Supabase · Vercel · Claude Code
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
