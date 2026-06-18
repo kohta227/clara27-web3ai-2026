@@ -73,7 +73,30 @@
       <section class="input-section">
         <div class="input-card">
           <h1 class="section-title">アイデアを追加</h1>
-          <div class="idea-input-area">
+
+          <!-- ブレストタイマーUI -->
+          <div class="timer-container" id="timer-container">
+            <div class="timer-row">
+              <div class="timer-status">
+                <span class="timer-icon">⏳</span>
+                <span class="timer-label">ブレストタイマー:</span>
+                <span id="timer-display" class="timer-display">未作動</span>
+              </div>
+              <div class="timer-actions">
+                <select id="select-timer-duration" class="timer-select">
+                  <option value="60">1分 (集中)</option>
+                  <option value="120" selected>2分 (標準)</option>
+                  <option value="180">3分 (じっくり)</option>
+                </select>
+                <button id="btn-timer-control" class="btn btn-timer">スタート</button>
+              </div>
+            </div>
+            <div class="timer-progress-container hidden" id="timer-progress-container">
+              <div id="timer-progress-bar" class="timer-progress-bar"></div>
+            </div>
+          </div>
+
+          <div class="idea-input-area" id="idea-input-area-wrapper">
             <textarea
               id="input-idea"
               class="idea-textarea"
@@ -81,7 +104,7 @@
               placeholder="アイデアを入力して Enter… (Shift+Enter で改行)"
             ></textarea>
             <div class="input-actions">
-              <span class="char-hint">Enter で追加 / Shift+Enter で改行</span>
+              <span class="char-hint" id="char-hint">Enter で追加 / Shift+Enter で改行</span>
               <button id="btn-add-idea" class="btn btn-primary btn-add">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 追加
@@ -204,6 +227,14 @@
 
           <!-- テキスト詳細 -->
           <div class="venn-details" id="venn-details"></div>
+
+          <!-- 推奨ツール＆技術スタック -->
+          <div class="recommended-tools-container" id="recommended-tools-container">
+            <h3 class="tools-section-title">🛠️ AI推奨の実現ツール＆技術スタック</h3>
+            <div class="tools-grid" id="tools-grid">
+              <!-- 動的生成されるカード -->
+            </div>
+          </div>
         </div>
 
       </section>

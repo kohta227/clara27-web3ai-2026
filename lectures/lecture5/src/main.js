@@ -17,6 +17,12 @@ const STORAGE_KEYS = {
 let ideas = loadIdeas();
 let draggedId = null;
 
+// ブレストタイマーの状態
+let timerInterval = null;
+let timerRemaining = 0;
+let timerDuration = 0;
+let timerAddedCount = 0;
+
 // ============================================================
 // DOM 要素の取得
 // ============================================================
@@ -42,6 +48,17 @@ const vennResultEl = $('venn-result');
 const vennResultSubtitleEl = $('venn-result-subtitle');
 const vennSvgEl = $('venn-svg');
 const vennDetailsEl = $('venn-details');
+
+// 追加機能用の DOM
+const timerContainerEl = $('timer-container');
+const timerDisplayEl = $('timer-display');
+const selectTimerDurationEl = $('select-timer-duration');
+const btnTimerControlEl = $('btn-timer-control');
+const timerProgressContainerEl = $('timer-progress-container');
+const timerProgressBarEl = $('timer-progress-bar');
+const ideaInputAreaWrapperEl = $('idea-input-area-wrapper');
+const recommendedToolsContainerEl = $('recommended-tools-container');
+const toolsGridEl = $('tools-grid');
 
 // ============================================================
 // アイデアの永続化ユーティリティ
@@ -91,6 +108,10 @@ function addIdea(text) {
   ideas.unshift(idea);
   saveIdeas();
   renderAll();
+  
+  if (timerInterval) {
+    timerAddedCount++;
+  }
 }
 
 function deleteIdea(id) {
@@ -345,6 +366,23 @@ function generateMockVennData(adoptedIdeas, pendingIdeas) {
       '未検討の可能性の探索',
     ],
     summary: `「採用」と「検討中」両群に共通するテーマは「アイデアの構造化と比較」です（デモモード）`,
+    recommendedTools: [
+      {
+        name: 'Vite + React',
+        category: 'frontend',
+        reason: '高速なフロントエンド構築とSPA開発に適しており、今回のアイデアのUI部分を素早く形にできます。'
+      },
+      {
+        name: 'Supabase',
+        category: 'database',
+        reason: 'Firebaseに代わる使いやすいOSSのBaaSで、アイデアデータの永続化や認証機能を簡単に実装できます。'
+      },
+      {
+        name: 'Glide',
+        category: 'nocode',
+        reason: 'スプレッドシートからPWAアプリを即座に自動生成できるため、プロトタイプを爆速で検証するのに最適です。'
+      }
+    ]
   };
 }
 
@@ -391,6 +429,7 @@ function buildVennPrompt(adoptedIdeas, pendingIdeas) {
 
   return `
 あなたはアイデア分析の専門家です。以下の2グループのアイデアを分析し、ベン図の3領域（採用のみ・共通・検討中のみ）に分類してください。
+また、特に「採用アイデア」および「共通要素」を実現するのに適した、具体的な開発ツールや技術スタック（Webサービス、フレームワーク、ライブラリ、データベース、ノーコードツールなど）を3つ推薦してください。
 
 ## 採用アイデア
 ${adoptedList || '（なし）'}
@@ -399,18 +438,28 @@ ${adoptedList || '（なし）'}
 ${pendingList || '（なし）'}
 
 ## 指示
-- 各アイデアを大まかなテーマ・キーワードに要約して分類してください
-- 共通する要素は「common」（2〜4個）に入れてください
-- それぞれ固有の要素は「adoptedOnly」「pendingOnly」に入れてください（各2〜4個）
-- 日本語で、短い名詞句で書いてください（15文字以内推奨）
-- summaryには全体の分析コメントを1〜2文で書いてください
+1. 各アイデアを大まかなテーマ・キーワードに要約して分類してください。
+   - 共通する要素は「common」（2〜4個）に入れてください。
+   - それぞれ固有の要素は「adoptedOnly」「pendingOnly」に入れてください（各2〜4個）。
+   - 日本語で、短い名詞句で書いてください（15文字いない推奨）。
+2. summaryには全体の分析コメントを1〜2文で書いてください。
+3. 採用アイデアおよび共通要素を実現するのにおすすめの実現ツールや技術スタック（具体名、例えば Firebase, React, LINE Bot API, Glide, Notion など）を3個、カテゴリと具体的な推薦理由を含めて提案してください。
+   - categoryは "frontend", "backend", "database", "nocode", "other" のいずれか一つを指定してください。
+   - reason（推薦理由）は簡潔に日本語で書いてください。
 
 ## 出力形式（必ずこの JSON のみ返す）
 {
   "adoptedOnly": ["キーワード1", "キーワード2"],
   "common": ["共通キーワード1", "共通キーワード2", "共通キーワード3"],
   "pendingOnly": ["キーワードA", "キーワードB"],
-  "summary": "全体のコメント"
+  "summary": "全体のコメント",
+  "recommendedTools": [
+    {
+      "name": "ツール名",
+      "category": "frontend | backend | database | nocode | other",
+      "reason": "推薦理由"
+    }
+  ]
 }
 `.trim();
 }
@@ -454,6 +503,9 @@ function renderVennDiagram(data, adoptedCount, pendingCount) {
 
   // テキスト詳細
   renderVennDetails(data);
+
+  // 推奨ツールの描画
+  renderRecommendedTools(data.recommendedTools);
 }
 
 function drawVennSvg(data) {
@@ -585,12 +637,143 @@ function renderVennDetails(data) {
 }
 
 // ============================================================
+// AI推奨ツールのレンダリング
+// ============================================================
+
+function renderRecommendedTools(tools) {
+  toolsGridEl.innerHTML = '';
+  
+  if (!tools || tools.length === 0) {
+    recommendedToolsContainerEl.classList.add('hidden');
+    return;
+  }
+  
+  recommendedToolsContainerEl.classList.remove('hidden');
+  
+  tools.forEach(tool => {
+    const card = document.createElement('div');
+    card.className = 'tool-card';
+    
+    // カテゴリの日本語化とクラス名のマッピング
+    const categoryClass = `tool-category--${tool.category || 'other'}`;
+    const categoryLabels = {
+      frontend: 'フロントエンド',
+      backend: 'バックエンド',
+      database: 'データベース',
+      nocode: 'ノーコード',
+      other: 'その他'
+    };
+    const categoryLabel = categoryLabels[tool.category] || tool.category || 'その他';
+    
+    card.innerHTML = `
+      <div class="tool-card-header">
+        <span class="tool-name">${escapeHtml(tool.name)}</span>
+        <span class="tool-category ${categoryClass}">${escapeHtml(categoryLabel)}</span>
+      </div>
+      <p class="tool-reason">${escapeHtml(tool.reason)}</p>
+    `;
+    
+    toolsGridEl.appendChild(card);
+  });
+}
+
+// ============================================================
+// ブレストタイマーのロジック
+// ============================================================
+
+function updateTimerUI() {
+  if (timerInterval) {
+    const minutes = Math.floor(timerRemaining / 60);
+    const seconds = timerRemaining % 60;
+    timerDisplayEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    
+    // プログレスバーの更新
+    const progress = (timerRemaining / timerDuration) * 100;
+    timerProgressBarEl.style.transform = `scaleX(${progress / 100})`;
+  } else {
+    timerDisplayEl.textContent = '未作動';
+    timerProgressContainerEl.classList.add('hidden');
+  }
+}
+
+function startTimer() {
+  if (timerInterval) return;
+  
+  const duration = parseInt(selectTimerDurationEl.value, 10);
+  timerDuration = duration;
+  timerRemaining = duration;
+  timerAddedCount = 0;
+  
+  timerContainerEl.classList.add('active');
+  timerProgressContainerEl.classList.remove('hidden');
+  timerProgressBarEl.style.transform = 'scaleX(1)';
+  
+  // 入力エリアを強調
+  ideaInputAreaWrapperEl.classList.add('timer-active');
+  inputIdeaEl.placeholder = '思いつくものをどんどん入力して Enter！ (制限時間内はフォーカスが維持されます)';
+  inputIdeaEl.focus();
+  
+  btnTimerControlEl.textContent = 'ストップ';
+  selectTimerDurationEl.disabled = true;
+  
+  updateTimerUI();
+  
+  timerInterval = setInterval(tick, 1000);
+}
+
+function stopTimer() {
+  if (!timerInterval) return;
+  
+  clearInterval(timerInterval);
+  timerInterval = null;
+  
+  timerContainerEl.classList.remove('active');
+  ideaInputAreaWrapperEl.classList.remove('timer-active');
+  inputIdeaEl.placeholder = 'アイデアを入力して Enter… (Shift+Enter で改行)';
+  
+  btnTimerControlEl.textContent = 'スタート';
+  selectTimerDurationEl.disabled = false;
+  
+  updateTimerUI();
+  
+  alert(`制限時間が終了しました！\nこのタイマー中に ${timerAddedCount} 個のアイデアが出ました！🎉`);
+}
+
+function tick() {
+  timerRemaining--;
+  updateTimerUI();
+  
+  if (timerRemaining <= 0) {
+    stopTimer();
+  }
+}
+
+// ============================================================
 // 初期化
 // ============================================================
 
 function init() {
   updateApiStatus();
   renderAll();
+  
+  // タイマーイベントの初期化
+  btnTimerControlEl.addEventListener('click', () => {
+    if (timerInterval) {
+      stopTimer();
+    } else {
+      startTimer();
+    }
+  });
+  
+  // タイマー動作中にフォーカスが外れた場合、自動で戻す（入力しやすくするためのUX）
+  inputIdeaEl.addEventListener('blur', () => {
+    if (timerInterval) {
+      // わずかな遅延を入れないと他のボタン操作が効かなくなるため setTimeout を使用
+      setTimeout(() => {
+        if (timerInterval) inputIdeaEl.focus();
+      }, 100);
+    }
+  });
 }
 
 init();

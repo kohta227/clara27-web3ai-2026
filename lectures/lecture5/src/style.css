@@ -730,3 +730,214 @@ body {
   .logo-text { font-size: 18px; }
   .modal-card { padding: 24px 20px; }
 }
+
+/* ==========================================
+   Brainstorming Timer Styles
+   ========================================== */
+.timer-container {
+  background: rgba(10, 14, 35, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  transition: all var(--transition-base);
+}
+.timer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.timer-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.timer-icon {
+  font-size: 18px;
+  animation: pulse-slow 2s infinite ease-in-out;
+}
+.timer-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.timer-display {
+  font-family: 'Outfit', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-teal);
+  background: rgba(20, 184, 166, 0.1);
+  padding: 2px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  min-width: 80px;
+  text-align: center;
+}
+.timer-container.active .timer-display {
+  color: var(--accent-rose);
+  background: rgba(244, 63, 94, 0.1);
+  border-color: rgba(244, 63, 94, 0.3);
+  animation: pulse-border 1.5s infinite ease-in-out;
+}
+.timer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.timer-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-base);
+}
+.timer-select:focus {
+  border-color: var(--border-focus);
+}
+.btn-timer {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent-primary-light);
+  border-color: rgba(99, 102, 241, 0.3);
+  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+.btn-timer:hover {
+  background: var(--accent-primary);
+  color: white;
+  border-color: transparent;
+}
+.timer-container.active .btn-timer {
+  background: rgba(244, 63, 94, 0.1);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.3);
+}
+.timer-container.active .btn-timer:hover {
+  background: var(--accent-rose);
+  color: white;
+  border-color: transparent;
+}
+.timer-progress-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 99px;
+  margin-top: 12px;
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+}
+.timer-progress-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent-teal), var(--accent-primary), var(--accent-rose));
+  border-radius: 99px;
+  transform-origin: left;
+  transition: transform 1s linear;
+}
+
+/* タイマー作動中の入力欄の警告パルス */
+.idea-input-area.timer-active {
+  position: relative;
+}
+.idea-input-area.timer-active .idea-textarea {
+  border-color: rgba(244, 63, 94, 0.4);
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1);
+  animation: border-alert 2s infinite ease-in-out;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0px rgba(244, 63, 94, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(244, 63, 94, 0); }
+}
+@keyframes border-alert {
+  0%, 100% { border-color: rgba(244, 63, 94, 0.3); }
+  50% { border-color: rgba(244, 63, 94, 0.7); }
+}
+
+/* ==========================================
+   AI Recommended Tools Styles
+   ========================================== */
+.recommended-tools-container {
+  padding: 24px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-subtle);
+  animation: card-in 0.4s ease;
+}
+.tools-section-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.tool-card {
+  background: rgba(6, 8, 18, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tool-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary-light);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.12);
+  background: rgba(20, 25, 60, 0.3);
+}
+.tool-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tool-name {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.tool-category {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+/* カテゴリごとの配色バッジ */
+.tool-category--frontend { background: rgba(99, 102, 241, 0.12); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.25); }
+.tool-category--backend { background: rgba(168, 85, 247, 0.12); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.25); }
+.tool-category--database { background: rgba(20, 184, 166, 0.12); color: #34d399; border: 1px solid rgba(20, 184, 166, 0.25); }
+.tool-category--nocode { background: rgba(251, 191, 36, 0.12); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.25); }
+.tool-category--other { background: rgba(148, 163, 184, 0.12); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
+
+.tool-reason {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
