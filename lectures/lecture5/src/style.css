@@ -941,3 +941,101 @@ body {
   color: var(--text-secondary);
   line-height: 1.6;
 }
+
+/* ==========================================
+   AI First Step Styles
+   ========================================== */
+.first-step-container {
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  animation: card-in 0.4s ease;
+}
+.first-step-card {
+  background: rgba(20, 25, 60, 0.4);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.15);
+  transition: all var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.first-step-card::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.first-step-card:hover {
+  border-color: rgba(168, 85, 247, 0.5);
+  box-shadow: 0 12px 40px rgba(168, 85, 247, 0.2);
+}
+.first-step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.first-step-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  padding: 3px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.05em;
+}
+.first-step-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #fbbf24, #fb7185);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.first-step-reason-box {
+  background: rgba(6, 8, 18, 0.3);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+}
+.first-step-reason-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.first-step-reason {
+  font-size: 13.5px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+.first-step-action-box {
+  background: rgba(20, 184, 166, 0.05);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid rgba(20, 184, 166, 0.2);
+}
+.first-step-action-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-teal);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.first-step-action {
+  font-size: 13.5px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}

@@ -59,6 +59,7 @@ const timerProgressBarEl = $('timer-progress-bar');
 const ideaInputAreaWrapperEl = $('idea-input-area-wrapper');
 const recommendedToolsContainerEl = $('recommended-tools-container');
 const toolsGridEl = $('tools-grid');
+const firstStepContainerEl = $('first-step-container');
 
 // ============================================================
 // アイデアの永続化ユーティリティ
@@ -382,7 +383,12 @@ function generateMockVennData(adoptedIdeas, pendingIdeas) {
         category: 'nocode',
         reason: 'スプレッドシートからPWAアプリを即座に自動生成できるため、プロトタイプを爆速で検証するのに最適です。'
       }
-    ]
+    ],
+    firstStep: {
+      title: "AI壁打ちでの思考整理の実装",
+      reason: "今回の採用アイデアの核となるのはAIとの対話部分です。このコア機能が具体化しないと、他の要素（ベン図の描画やツールの選定など）へ進むのが難しくなるため、最も最初に取り組むべきです。",
+      action: "現在の main.js の中にある Gemini API 呼び出しロジックを参考に、対話型UIコンポーネント（チャットUIのモック）をHTML/CSSで1時間を目安に作成してみる。"
+    }
   };
 }
 
@@ -446,6 +452,8 @@ ${pendingList || '（なし）'}
 3. 採用アイデアおよび共通要素を実現するのにおすすめの実現ツールや技術スタック（具体名、例えば Firebase, React, LINE Bot API, Glide, Notion など）を3個、カテゴリと具体的な推薦理由を含めて提案してください。
    - categoryは "frontend", "backend", "database", "nocode", "other" のいずれか一つを指定してください。
    - reason（推薦理由）は簡潔に日本語で書いてください。
+4. 提供された「採用アイデア」や「検討中アイデア」の中から、最初に取り組むべき事項をAIが1つ選出し、"firstStep"（最初の一歩）として提案してください。
+   - 選出の理由（なぜこれから取り組むべきか）と、すぐに始められる具体的なファーストアクションを提示してください。
 
 ## 出力形式（必ずこの JSON のみ返す）
 {
@@ -453,6 +461,11 @@ ${pendingList || '（なし）'}
   "common": ["共通キーワード1", "共通キーワード2", "共通キーワード3"],
   "pendingOnly": ["キーワードA", "キーワードB"],
   "summary": "全体のコメント",
+  "firstStep": {
+    "title": "最初に取り組むべき事項（15文字以内推奨）",
+    "reason": "選定した理由（簡潔に）",
+    "action": "具体的な最初のアクション（何をするべきか）"
+  },
   "recommendedTools": [
     {
       "name": "ツール名",
@@ -504,8 +517,37 @@ function renderVennDiagram(data, adoptedCount, pendingCount) {
   // テキスト詳細
   renderVennDetails(data);
 
+  // 最初に取り掛かるべき事項の描画
+  renderFirstStep(data.firstStep);
+
   // 推奨ツールの描画
   renderRecommendedTools(data.recommendedTools);
+}
+
+function renderFirstStep(firstStep) {
+  if (!firstStep || !firstStep.title) {
+    firstStepContainerEl.classList.add('hidden');
+    return;
+  }
+  
+  firstStepContainerEl.classList.remove('hidden');
+  
+  firstStepContainerEl.innerHTML = `
+    <div class="first-step-card">
+      <div class="first-step-header">
+        <span class="first-step-badge">🎯 最初の一歩</span>
+        <h3 class="first-step-title">${escapeHtml(firstStep.title)}</h3>
+      </div>
+      <div class="first-step-reason-box">
+        <div class="first-step-reason-title">💡 なぜこれから始めるべきか（選定理由）</div>
+        <p class="first-step-reason">${escapeHtml(firstStep.reason)}</p>
+      </div>
+      <div class="first-step-action-box">
+        <div class="first-step-action-title">🚀 具体的な最初のアクション</div>
+        <p class="first-step-action">${escapeHtml(firstStep.action)}</p>
+      </div>
+    </div>
+  `;
 }
 
 function drawVennSvg(data) {
